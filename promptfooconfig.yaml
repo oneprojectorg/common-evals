@@ -7,8 +7,14 @@ prompts:
     Task: {{task}}
 
     Return a concise, evidence-based result. Do not invent details that are not
-    present in the input. For classification tasks, include the requested label
-    and a brief rationale.
+    present in the input. For classification tasks, start with
+    CLASSIFICATION: <one exact label>, then give a brief rationale. For merge
+    tasks, start with MERGE DECISION: <yes, no, or insufficient information>,
+    then give a brief rationale. Merge only proposals that request materially
+    the same core change; related but distinct proposals should not be merged.
+    If the descriptions do not provide enough detail to compare the requested
+    changes, choose insufficient information. Choose no only when both changes
+    are clear and materially distinct.
 
     Input:
     {{input}}
@@ -50,13 +56,15 @@ tests:
         Add an optional applicant checklist to the Common Application dashboard
         so applicants can track outstanding materials.
     assert:
+      - type: contains
+        value: "CLASSIFICATION: applicant experience"
       - type: llm-rubric
-        value: Classifies this as applicant experience and gives a reason consistent with the input.
+        value: Classifies the proposal as applicant experience and gives a reason consistent with the input.
 
   - vars:
       task: >-
         Decide whether this proposal should be merged with the related proposal.
-        Answer yes or no and explain the key overlap or difference.
+        Give a yes-or-no decision and explain the key overlap or difference.
       input: >-
         Proposal: Add an optional applicant checklist to the Common Application
         dashboard so applicants can track outstanding materials.
@@ -64,8 +72,10 @@ tests:
         Related proposal: Send applicants email reminders when required materials
         are missing.
     assert:
+      - type: contains
+        value: "MERGE DECISION: no"
       - type: llm-rubric
-        value: Gives a clear yes-or-no merge recommendation and compares the proposals based on the information provided, without treating related functionality as identical.
+        value: Recommends not merging because a checklist and email reminders are related but distinct changes, and explains that distinction.
 
   - vars:
       task: >-
@@ -75,6 +85,8 @@ tests:
         Improve screen-reader support in the application form by adding accessible
         labels and keyboard navigation for all required fields.
     assert:
+      - type: contains
+        value: "CLASSIFICATION: accessibility"
       - type: llm-rubric
         value: Classifies this as accessibility and cites a detail from the proposal.
 
@@ -87,5 +99,49 @@ tests:
 
         Related proposal: Improve the applicant experience.
     assert:
+      - type: contains
+        value: "MERGE DECISION: insufficient information"
       - type: llm-rubric
-        value: Notes that the descriptions are too vague to determine whether the proposals should be merged, and does not invent feature details.
+        value: Says the descriptions are too vague to determine whether the proposals should be merged, and identifies missing details without inventing them.
+
+  - vars:
+      task: >-
+        Classify the proposal as one of: accessibility, applicant experience,
+        integrations, or other. Give one short reason.
+      input: >-
+        Connect the application to the State University student information system
+        so applicants can import verified enrollment and course records.
+    assert:
+      - type: contains
+        value: "CLASSIFICATION: integrations"
+      - type: llm-rubric
+        value: Classifies this as integrations and cites the connection to an external student information system.
+
+  - vars:
+      task: >-
+        Classify the proposal as one of: accessibility, applicant experience,
+        integrations, or other. Give one short reason.
+      input: >-
+        Publish a quarterly public report showing aggregate application volume
+        by year, with no applicant-level information.
+    assert:
+      - type: contains
+        value: "CLASSIFICATION: other"
+      - type: llm-rubric
+        value: Classifies this as other and gives a reason consistent with the input.
+
+  - vars:
+      task: >-
+        Decide whether this proposal should be merged with the related proposal.
+        Return yes only if both proposals request materially the same core change.
+        Explain the overlap.
+      input: >-
+        Proposal: Let applicants save a draft of their application and return later.
+
+        Related proposal: Allow applicants to save application progress as a draft
+        and resume it in a later session.
+    assert:
+      - type: contains
+        value: "MERGE DECISION: yes"
+      - type: llm-rubric
+        value: Recommends merging because both proposals request saving a draft and resuming later.

@@ -53,11 +53,12 @@ and [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togethe
 for configuration details.
 
 The main configuration is [`promptfooconfig.yaml`](promptfooconfig.yaml). It
-currently contains starter examples for summarization, proposal classification,
-and deciding whether related proposals should be merged, including a case where
-there is not enough information to make a decision. Add test cases and update
-assertions as evaluation needs grow. Use `just eval`, `just eval-local`, or `just eval-together` to run a single
-provider and its matching grader.
+contains examples for summarization, all four proposal categories, and merge
+outcomes for duplicate, related-but-distinct, and vague proposal pairs. The
+classification labels and merge decisions have direct output checks; rubrics
+also assess rationale and grounding. Add representative cases as evaluation
+needs grow. Use `just eval`, `just eval-local`, or `just eval-together` to run a
+single provider and its matching grader.
 
 ## Open questions
 
