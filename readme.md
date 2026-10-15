@@ -1,13 +1,23 @@
 # Common Evals
 
-A configuration-first collection of evaluations for LLM tasks related to the
-[Common Application](https://github.com/oneprojectorg/common/). Evaluations are
-configured in Promptfoo YAML to keep custom code to a minimum.
+A configuration-first collection of evaluations for LLM tasks related to
+[Common](https://github.com/oneprojectorg/common/), One Project's platform for
+participatory decision-making. Evaluations are configured in Promptfoo YAML to
+keep custom code to a minimum.
 
-## Run locally
+On Common, an organization runs a decision process: members submit proposals,
+reviewers shortlist them, members vote, and the winners are funded or adopted.
+A proposal has a title and summary and may carry a budget, a location, and a
+category from a list the decision's admins define. Admins merge duplicate
+proposals, and the merge note goes to the authors of the merged-away proposal.
+The evaluation cases model those tasks: summarizing a proposal for its card,
+classifying it into the decision's categories, and deciding whether two
+proposals should be merged.
+
+## Run evaluations
 
 Requires [Node.js](https://nodejs.org/) and [just](https://github.com/casey/just).
-From the repository root, validate the configuration and view previous results with:
+From the repository root, validate the configuration and view the latest results with:
 
 ```sh
 just validate
@@ -22,7 +32,8 @@ just eval
 ```
 
 Run a local model with [llama-server](https://github.com/ggml-org/llama.cpp/tree/master/examples/server).
-Start the server on port `8080` and set its model alias to `local-model`:
+Start the server on port `8080`, set its model alias to `local-model`, and leave
+it running while the evaluation runs:
 
 ```sh
 llama-server -m /path/to/model.gguf --alias local-model --port 8080
@@ -42,7 +53,7 @@ export TOGETHER_API_KEY=...
 just eval-together
 ```
 
-Each `just` recipe selects one target provider and uses that provider for
+Each `just` recipe selects one target provider and uses the same provider for
 rubric grading. The local recipe uses the same llama-server model as target and
 grader, so treat its scores as a smoke test rather than an independent quality
 measure. The provider endpoints and model IDs are configured in
@@ -53,18 +64,25 @@ and [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togethe
 for configuration details.
 
 The main configuration is [`promptfooconfig.yaml`](promptfooconfig.yaml). It
-contains examples for summarization, all four proposal categories, and merge
-outcomes for duplicate, related-but-distinct, and vague proposal pairs. The
-classification labels and merge decisions have direct output checks; rubrics
-also assess rationale and grounding. Add representative cases as evaluation
-needs grow. Use `just eval`, `just eval-local`, or `just eval-together` to run a
+contains a summarization case, one classification case per category of an
+example neighborhood improvement fund, and merge outcomes for duplicate,
+related-but-distinct, and vague proposal pairs. Categories on Common are
+defined per decision, so each case passes the decision's category list in the
+input rather than assuming a global taxonomy. The classification labels and
+merge decisions have direct output checks; rubrics also assess rationale and
+grounding. The proposals are invented examples in the style of a
+participatory budgeting decision. Replace them with anonymized proposals from
+a real decision as evaluation needs grow. Use `just eval`, `just eval-local`, or `just eval-together` to run a
 single provider and its matching grader.
 
 ## Open questions
 
-- Which Common Application use cases and proposal categories should we
-  prioritize?
-- What criteria should govern whether proposals are merged?
+- Which Common use cases should we prioritize? Summaries, categorization, and
+  merge suggestions are starting points; drafting the merge note sent to
+  merged-away authors and review rubric scoring are candidates.
+- Which real decisions should supply category lists and sample proposals?
+- What criteria should govern whether proposals are merged? Common records a
+  merge as an admin action with a note, and does not define the criteria.
 - Which metrics best assess quality? Consider combining task-specific checks
   with similarity measures such as BERTScore or ROUGE; similarity alone may not
   measure correctness, tone, or usefulness.
