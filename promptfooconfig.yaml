@@ -26,13 +26,6 @@ providers:
     label: Together AI Llama 3.3 70B
 
 defaultTest:
-  options:
-    provider:
-      id: openai:chat:local-model
-      config:
-        apiBaseUrl: http://127.0.0.1:8080/v1
-        apiKeyRequired: false
-        useDefaultApiKey: false
   assert:
     - type: llm-rubric
       value: The response is relevant to the requested task, grounded in the provided input, and does not invent unsupported facts.

@@ -42,7 +42,10 @@ export TOGETHER_API_KEY=...
 just eval-together
 ```
 
-The provider endpoints and model IDs are configured in
+Each `just` recipe selects one target provider and uses that provider for
+rubric grading. The local recipe uses the same llama-server model as target and
+grader, so treat its scores as a smoke test rather than an independent quality
+measure. The provider endpoints and model IDs are configured in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Update those YAML entries to use
 a different local alias, llama-server URL, or Together AI model. See
 [Promptfoo's OpenAI-compatible provider docs](https://www.promptfoo.dev/docs/providers/openai/)
@@ -53,8 +56,8 @@ The main configuration is [`promptfooconfig.yaml`](promptfooconfig.yaml). It
 currently contains starter examples for summarization, proposal classification,
 and deciding whether related proposals should be merged, including a case where
 there is not enough information to make a decision. Add test cases and update
-assertions as evaluation needs grow. The default provider is `openai:gpt-4o-mini`;
-`just eval-local` and `just eval-together` select local llama-server or Together AI providers.
+assertions as evaluation needs grow. Use `just eval`, `just eval-local`, or `just eval-together` to run a single
+provider and its matching grader.
 
 ## Open questions
 
