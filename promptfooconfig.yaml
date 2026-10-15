@@ -14,9 +14,25 @@ prompts:
     {{input}}
 
 providers:
-  - openai:gpt-4o-mini
+  - id: openai:gpt-4o-mini
+    label: OpenAI GPT-4o mini
+  - id: openai:chat:local-model
+    label: llama-server local-model
+    config:
+      apiBaseUrl: http://127.0.0.1:8080/v1
+      apiKeyRequired: false
+      useDefaultApiKey: false
+  - id: togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo
+    label: Together AI Llama 3.3 70B
 
 defaultTest:
+  options:
+    provider:
+      id: openai:chat:local-model
+      config:
+        apiBaseUrl: http://127.0.0.1:8080/v1
+        apiKeyRequired: false
+        useDefaultApiKey: false
   assert:
     - type: llm-rubric
       value: The response is relevant to the requested task, grounded in the provided input, and does not invent unsupported facts.
@@ -57,3 +73,26 @@ tests:
     assert:
       - type: llm-rubric
         value: Gives a clear yes-or-no merge recommendation and compares the proposals based on the information provided, without treating related functionality as identical.
+
+  - vars:
+      task: >-
+        Classify the proposal as one of: accessibility, applicant experience,
+        integrations, or other. Give one short reason.
+      input: >-
+        Improve screen-reader support in the application form by adding accessible
+        labels and keyboard navigation for all required fields.
+    assert:
+      - type: llm-rubric
+        value: Classifies this as accessibility and cites a detail from the proposal.
+
+  - vars:
+      task: >-
+        Decide whether this proposal should be merged with the related proposal.
+        If the information is not enough to decide, say so and state what is missing.
+      input: >-
+        Proposal: Add a new dashboard feature for applicants.
+
+        Related proposal: Improve the applicant experience.
+    assert:
+      - type: llm-rubric
+        value: Notes that the descriptions are too vague to determine whether the proposals should be merged, and does not invent feature details.
