@@ -1,19 +1,34 @@
 # Common Evals
 
-This is a set of common evals for evaluating LLM Models for tasks
-related to the [Common
-Application](https://github.com/oneprojectorg/common/).
+A configuration-first collection of evaluations for LLM tasks related to the
+[Common Application](https://github.com/oneprojectorg/common/). Evaluations are
+configured in Promptfoo YAML to keep custom code to a minimum.
 
-## Open Questions/TODOS
+## Run locally
 
-- Come up with the best use cases.
-  - Summarizization is a common one
-  - Classification of prosposals
-  - Classify proposals to merge
+Requires [Node.js](https://nodejs.org/), [just](https://github.com/casey/just),
+and an `OPENAI_API_KEY` for the configured OpenAI provider. From the repository
+root:
 
-- Metrics for PromptFoo
-  - Vector comparision for LLM output
-  - Bert Metrics, Rouge and
-    - These judge things like similarity like Tone and Topic
-    - https://www.comet.com/site/blog/bertscore-for-llm-evaluation/
-    - https://en.wikipedia.org/wiki/ROUGE_(metric)
+```sh
+export OPENAI_API_KEY=...
+just validate # Check configuration without making model calls
+just eval     # Run evaluations
+just view     # View the latest results
+```
+
+The main configuration is [`promptfooconfig.yaml`](promptfooconfig.yaml). It
+currently contains starter examples for summarization, proposal classification,
+and deciding whether related proposals should be merged. Edit its prompts,
+providers, test inputs, and assertions to evolve the eval set. The default
+provider is `openai:gpt-4o-mini`; change it in the YAML to compare another
+Promptfoo-supported provider.
+
+## Open questions
+
+- Which Common Application use cases and proposal categories should we
+  prioritize?
+- What criteria should govern whether proposals are merged?
+- Which metrics best assess quality? Consider combining task-specific checks
+  with similarity measures such as BERTScore or ROUGE; similarity alone may not
+  measure correctness, tone, or usefulness.

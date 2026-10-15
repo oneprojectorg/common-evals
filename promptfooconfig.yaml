@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: Common Application proposal evaluation starter
+
+prompts:
+  - |
+    You are evaluating a proposal related to the Common Application.
+    Task: {{task}}
+
+    Return a concise, evidence-based result. Do not invent details that are not
+    present in the input. For classification tasks, include the requested label
+    and a brief rationale.
+
+    Input:
+    {{input}}
+
+providers:
+  - openai:gpt-4o-mini
+
+defaultTest:
+  assert:
+    - type: llm-rubric
+      value: The response is relevant to the requested task, grounded in the provided input, and does not invent unsupported facts.
+
+tests:
+  - vars:
+      task: Summarize the proposal in 2-3 sentences, including its goal and intended users.
+      input: >-
+        Add an optional applicant checklist to the Common Application dashboard.
+        Applicants could mark required materials as complete and see which items
+        are still outstanding. The checklist would be visible only to the applicant
+        and would not affect how colleges review applications.
+    assert:
+      - type: llm-rubric
+        value: Summarizes the checklist feature and its purpose without claiming it changes college review.
+
+  - vars:
+      task: >-
+        Classify the proposal as one of: accessibility, applicant experience,
+        integrations, or other. Give one short reason.
+      input: >-
+        Add an optional applicant checklist to the Common Application dashboard
+        so applicants can track outstanding materials.
+    assert:
+      - type: llm-rubric
+        value: Classifies this as applicant experience and gives a reason consistent with the input.
+
+  - vars:
+      task: >-
+        Decide whether this proposal should be merged with the related proposal.
+        Answer yes or no and explain the key overlap or difference.
+      input: >-
+        Proposal: Add an optional applicant checklist to the Common Application
+        dashboard so applicants can track outstanding materials.
+
+        Related proposal: Send applicants email reminders when required materials
+        are missing.
+    assert:
+      - type: llm-rubric
+        value: Gives a clear yes-or-no merge recommendation and compares the proposals based on the information provided, without treating related functionality as identical.
