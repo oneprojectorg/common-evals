@@ -88,13 +88,11 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 | Recipe | Target and grader | Needs |
 |---|---|---|
 | `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
-| `just eval-openai` | GPT-4o mini | `OPENAI_API_KEY` |
+| `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY` |
 | `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
 
-Each recipe grades with the same model it tests. A model agreeing with its own
-answers is a smoke test for rubric scores. The exact-match checks on labels and
-merge decisions stay reliable whoever grades.
+By default the model is its own grader! We need to iterate on this.
 
 # Running it against another model
 

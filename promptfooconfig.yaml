@@ -21,8 +21,8 @@ prompts:
 providers:
   - id: anthropic:messages:claude-sonnet-5-5
     label: Anthropic Claude Sonnet 5.5
-  - id: openai:gpt-4o-mini
-    label: OpenAI GPT-4o mini
+  - id: openai:gpt-6-luna
+    label: OpenAI GPT-6 Luna
   - id: openai:chat:local-model
     label: llama-server local-model
     config:

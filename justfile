@@ -10,9 +10,9 @@ install:
 eval:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "anthropic:messages:claude-sonnet-5-5"
 
-# Run and grade with OpenAI GPT-4o mini only. Set OPENAI_API_KEY.
+# Run and grade with OpenAI GPT-6 Luna only. Set OPENAI_API_KEY.
 eval-openai:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-4o-mini" --grader "openai:gpt-4o-mini"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-6-luna" --grader "openai:gpt-6-luna"
 
 # Serve Apertus 1.5 8B (text-only GGUF) on port 8080 for eval-local. First run downloads ~8.5 GB.
 serve-apertus:

@@ -53,7 +53,7 @@ effort setting to the provider entry in `promptfooconfig.yaml`:
       effort: low
 ```
 
-Run and grade with OpenAI's GPT-4o mini using `OPENAI_API_KEY`:
+Run and grade with OpenAI's GPT-6 Luna using `OPENAI_API_KEY`:
 
 ```sh
 export OPENAI_API_KEY=...
