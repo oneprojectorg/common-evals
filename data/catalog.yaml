@@ -1,0 +1,500 @@
+# Catalog of participatory budgeting (PB) and civic-input datasets.
+#
+# Each entry describes one source and the files `scripts/download.py` fetches
+# into data/raw/<id>/. The entries follow the dataset review of 2026-10-08
+# ("PB and civic-input datasets: one-table summary") and were re-verified
+# against the live sources on 2026-10-20.
+#
+# Fields
+#   id             folder name under data/raw/ and the argument to `just download`
+#   access         public      files download without a login
+#                  blocked     the server returns 403 to scripts; download in a browser
+#                  internal    lives on our own platform; no public files
+#                  request     ask the publisher or authors
+#                  unreleased  announced but not yet published
+#   resident_text  the free text residents wrote, if any
+#   compressed     the shorter form the text was reduced to, and by whom
+#   chain          the stages a submission can be traced through
+#   names_present  true when author names are in the files; strip before use
+#   license        the stated terms; "none stated" means we found none
+#   eval_uses      the Common tasks the data can ground (summarization,
+#                  classification, merge, screening)
+#   files          name = local file name, url = download URL,
+#                  unzip = extract the archive into the dataset folder
+#
+# Download with GET, not HEAD. Decidim exports redirect to presigned object
+# storage URLs that reject HEAD requests.
+
+datasets:
+
+  - id: engaged-ca-la-fires
+    name: Engaged California, LA Fires recovery consultation
+    publisher: California Office of Data and Innovation
+    homepage: https://engaged.ca.gov/
+    description: >-
+      State-run public consultation on wildfire recovery. Each comment carries
+      the topic and conversation group assigned by the state's AI clustering.
+    resident_text: COMMENT column, verbatim resident comments
+    compressed: TOPIC and CONVERSATION_GROUP labels from AI clustering; summaries and the action plan are published on the site, not as files
+    chain: comments -> AI clusters -> summaries -> action plan
+    counts: 1,289 comments
+    names_present: false
+    license: none stated; ODI confirmation pending
+    access: public
+    eval_uses: [classification]
+    files:
+      - name: wildfire_agenda_setting_comments.csv
+        url: https://engaged.ca.gov/public/data/wildfire_agenda_setting_comments.csv
+        format: csv
+        columns: [COMMENT_ID, TOPIC, CONVERSATION_GROUP, COMMENT]
+
+  - id: engaged-ca-state-employees
+    name: Engaged California, state employee efficiency consultation
+    publisher: California Office of Data and Innovation
+    homepage: https://engaged.ca.gov/
+    description: >-
+      Internal state-workforce consultation. Each extracted idea links to the
+      comment it came from and carries assigned themes and subthemes.
+    resident_text: COMMENT column in both files, verbatim employee comments
+    compressed: IDEA_TEXT extracted from each comment, plus IDEA_MAIN_THEMES_LIST and IDEA_SUBTHEMES_LIST
+    chain: comments -> extracted ideas -> themes -> summaries
+    counts: 2,477 comments; 2,627 ideas
+    names_present: false
+    license: none stated; ODI confirmation pending
+    access: public
+    eval_uses: [summarization, classification]
+    files:
+      - name: State_employees_all_data.zip
+        url: https://engaged.ca.gov/public/data/State_employees_all_data.zip
+        format: zip
+        unzip: true
+        contents: [README.md, State_employees_all_comments.csv, State_employees_all_ideas.csv]
+
+  - id: cambridge-pb
+    name: Cambridge MA participatory budgeting, ideas and ballots
+    publisher: City of Cambridge Open Data
+    homepage: https://data.cambridgema.gov/Budget-Finance/Participatory-Budgeting-Ideas-Submitted-by-Communi/54vd-wdqj
+    description: >-
+      Thirteen PB cycles of resident ideas with the city's eligibility
+      decision and reason, and the ballot projects with vote totals and
+      winners.
+    resident_text: Project Title and Project Description in the ideas file
+    compressed: Project Status, the staff eligibility decision with its reason; Short Project Description on the ballot, written by staff
+    chain: ideas -> staff screening -> ballot -> winners (full link in 2 of 13 cycles)
+    counts: 12,674 ideas; 239 ballot projects; 2014-2026
+    names_present: true
+    names_columns: [Idea Submitter]
+    license: ODC-PDDL
+    access: public
+    eval_uses: [classification, summarization, screening]
+    files:
+      - name: ideas.csv
+        url: "https://data.cambridgema.gov/api/views/54vd-wdqj/rows.csv?accessType=DOWNLOAD"
+        format: csv
+        columns: [PB Cycle, Date Range, "Idea #", Committee, Project Title, Project Description, Project Status, Idea Submitter, Location, Latitude, Longitude, Winning Project ID, Idea Status, Link to Other Information, Desired Impact]
+        note: the CSV export uses display names; the Socrata API uses snake_case field names
+      - name: ballot_projects.csv
+        url: "https://data.cambridgema.gov/api/views/uhwd-9y6q/rows.csv?accessType=DOWNLOAD"
+        format: csv
+        columns: [PB Cycle, Date Range, Project, Total Votes, Winning project, Project Cost, Capital Budget, Location Description, Short Project Description, Long Project Description, Winning Project ID, Project ID Aliases, Project Locations]
+
+  - id: barcelona-decidim
+    name: Barcelona Decidim open data export
+    publisher: Ajuntament de Barcelona
+    homepage: https://www.decidim.barcelona/open-data
+    description: >-
+      Proposals, bilingual city answers, stance-labeled comments, and ballot
+      projects linked to source proposals, across the 2020 and 2024 PB cycles.
+    resident_text: proposal titles and bodies, comments
+    compressed: city answers to proposals; ballot project descriptions
+    chain: proposals -> city answer -> ballot -> votes
+    counts: 5,589 proposals; 11,467 comments; 423 ballot projects
+    names_present: true
+    license: CC BY-SA for user content
+    access: blocked
+    access_note: >-
+      The server answers scripted requests with an nginx 403. Open the
+      homepage in a browser, click Download, and save the zip as
+      data/raw/barcelona-decidim/decidim-barcelona-open-data.zip, then unzip it there.
+    eval_uses: [summarization, classification, merge, screening]
+    files:
+      - name: decidim-barcelona-open-data.zip
+        url: https://www.decidim.barcelona/open-data/download
+        format: zip
+        unzip: true
+
+  - id: toulouse-decidim
+    name: Toulouse Je Participe open data export
+    publisher: Toulouse Métropole
+    homepage: https://jeparticipe.metropole.toulouse.fr/open-data
+    description: >-
+      Full pre-shortlist PB proposal pool with a written city answer for every
+      rejection. Proposal IDs join to the Toulouse instances in Pabulib.
+    resident_text: title/fr and body/fr in the proposals file
+    compressed: answer/fr, the city's written answer; state, the screening outcome
+    chain: proposals -> city answer -> ballot -> votes
+    counts: 3,214 PB proposals; 2021, 2023
+    names_present: true
+    license: Licence Ouverte 2.0
+    access: public
+    eval_uses: [summarization, screening, merge]
+    files:
+      - name: jeparticipe-toulouse-open-data.zip
+        url: https://jeparticipe.metropole.toulouse.fr/open-data/download
+        format: zip
+        unzip: true
+        contents:
+          - jeparticipe.metropole.toulouse.fr-open-data-proposals.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-proposal_comments.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-projects.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-meetings.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-meeting_comments.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-results.csv
+          - jeparticipe.metropole.toulouse.fr-open-data-result_comments.csv
+        note: semicolon-delimited; proposals columns include id, category/name/fr, title/fr, body/fr, state, answer/fr, supports
+
+  - id: helsinki-omastadi
+    name: Helsinki OmaStadi open data export
+    publisher: City of Helsinki
+    homepage: https://omastadi.hel.fi/open-data
+    description: >-
+      Whole-cycle PB export from idea through co-developed plan, ballot, and
+      implementation, with stance-labeled comments.
+    resident_text: proposals, plans, comments
+    compressed: co-developed plans written with city staff; ballot descriptions
+    chain: ideas -> plans -> ballot -> implementation
+    counts: 1,284 proposals; 2,195 comments; 2,031 ballot projects; 2018-2023
+    names_present: true
+    license: ODbL for data; CC BY-NC-SA for text
+    access: blocked
+    access_note: >-
+      The server answers scripted requests with an nginx 403. Open the
+      homepage in a browser, click Download, and save the zip as
+      data/raw/helsinki-omastadi/omastadi-open-data.zip, then unzip it there.
+    eval_uses: [summarization, classification, merge]
+    files:
+      - name: omastadi-open-data.zip
+        url: https://omastadi.hel.fi/open-data/download
+        format: zip
+        unzip: true
+
+  - id: somerville-pb
+    name: Somerville MA participatory budgeting submissions
+    publisher: City of Somerville Open Data
+    homepage: https://data.somervillema.gov/Government-Finance/Participatory-Budgeting-Submissions/brrj-v9a4
+    description: >-
+      One PB cycle of resident ideas with the city's category and theme labels
+      and support counts.
+    resident_text: Idea and Description columns
+    compressed: Category and Theme labels assigned by staff
+    chain: 966 ideas -> 20 finalists
+    counts: 966 ideas; 2023
+    names_present: false
+    license: ODbL
+    access: public
+    eval_uses: [classification]
+    files:
+      - name: submissions.csv
+        url: "https://data.somervillema.gov/api/views/brrj-v9a4/rows.csv?accessType=DOWNLOAD"
+        format: csv
+        columns: [Year, Category, Theme, Idea, Description, Citywide, Near.Address, Longitude, Latitude, Comment.Count, Support.Count]
+
+  - id: habermas-machine
+    name: Habermas Machine deliberation data
+    publisher: Google DeepMind
+    homepage: https://github.com/google-deepmind/habermas_machine
+    description: >-
+      Crowdworker deliberation data behind "AI can help humans find common
+      ground in democratic deliberation" (Science, 2024). Individual opinions,
+      critiques, and AI- or human-mediated group statements. Not PB.
+    resident_text: participant opinions and critiques
+    compressed: group statements written by the model or a human mediator
+    chain: individual opinions -> mediated group statement -> rankings
+    counts: 4 parquet files, about 450 MB
+    names_present: false
+    license: CC BY 4.0 for data; Apache 2.0 for code
+    access: public
+    eval_uses: [summarization]
+    files:
+      - name: hm_all_candidate_comparisons.parquet
+        url: https://storage.googleapis.com/habermas_machine/datasets/hm_all_candidate_comparisons.parquet
+        format: parquet
+      - name: hm_all_final_preference_rankings.parquet
+        url: https://storage.googleapis.com/habermas_machine/datasets/hm_all_final_preference_rankings.parquet
+        format: parquet
+      - name: hm_all_position_statement_ratings.parquet
+        url: https://storage.googleapis.com/habermas_machine/datasets/hm_all_position_statement_ratings.parquet
+        format: parquet
+      - name: hm_all_round_survey_responses.parquet
+        url: https://storage.googleapis.com/habermas_machine/datasets/hm_all_round_survey_responses.parquet
+        format: parquet
+
+  - id: pabulib
+    name: Pabulib participatory budgeting library
+    publisher: Pabulib (University of Warsaw and contributors)
+    homepage: https://pabulib.org
+    description: >-
+      Standard social-choice library of real PB ballots and project metadata.
+      Files are served one instance at a time as .pb text files; the bulk
+      download runs behind a Cloudflare check in the browser.
+    resident_text: none; project titles only
+    compressed: none
+    chain: ballots -> winners
+    counts: about 2,050 instances across 29 cities; Toulouse has 23
+    names_present: false
+    license: not stated
+    access: public
+    access_note: >-
+      One sample instance is listed below. For more, read the city list at
+      https://pabulib.org/api/options and fetch https://pabulib.org/download/<Country>_<City>_<Year>[_<Unit>].pb
+      per instance, or use the site's bulk download in a browser.
+    eval_uses: []
+    files:
+      - name: France_Toulouse_2019.pb
+        url: https://pabulib.org/download/France_Toulouse_2019.pb
+        format: pb
+
+  - id: stanford-pb-preferences
+    name: Stanford Participatory Budgeting Preferences Data Set
+    publisher: Stanford Digital Repository
+    homepage: https://purl.stanford.edu/db709zg9088
+    description: >-
+      Anonymized ballots from the Stanford PB Platform across U.S. cities under
+      four elicitation methods, with election and project tables.
+    resident_text: none; project names, costs, and ballot orderings only
+    compressed: none
+    chain: ballots -> winners
+    counts: 125 elections; 1,499 projects; about 125,000 voters
+    names_present: false
+    license: privacy clause only; see use statement on the record
+    access: public
+    eval_uses: []
+    files:
+      - name: PB dataset documentation.pdf
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/PB%20dataset%20documentation.pdf"
+        format: pdf
+      - name: elections_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/elections_clean.csv"
+        format: csv
+      - name: elections_rich.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/elections_rich.csv"
+        format: csv
+      - name: projects_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/projects_clean.csv"
+        format: csv
+      - name: voters_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/voters_clean.csv"
+        format: csv
+      - name: vote_approvals_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_approvals_clean.csv"
+        format: csv
+      - name: vote_knapsacks_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_knapsacks_clean.csv"
+        format: csv
+      - name: vote_rankings_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_rankings_clean.csv"
+        format: csv
+      - name: vote_tokens_clean.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_tokens_clean.csv"
+        format: csv
+      - name: vote_infer_knapsack_partial.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_infer_knapsack_partial.csv"
+        format: csv
+      - name: vote_infer_knapsack_skip.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/vote_infer_knapsack_skip.csv"
+        format: csv
+      - name: voters_infer_knapsack_utility_stats.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/voters_infer_knapsack_utility_stats.csv"
+        format: csv
+      - name: voters_utility_stats.csv
+        url: "https://stacks.stanford.edu/file/druid:db709zg9088/csv%20files/voters_utility_stats.csv"
+        format: csv
+
+  - id: nyc-pb
+    name: NYC Council participatory budgeting projects, tracker, and surveys
+    publisher: NYC Open Data
+    homepage: https://data.cityofnewyork.us/City-Government/Participatory-Budgeting-Projects/wwhr-5ven
+    description: >-
+      Council-district ballot projects with census geography, an
+      implementation tracker, and participant surveys. Frozen since 2017-2019.
+    resident_text: none; ballot titles only
+    compressed: ballot titles written by staff
+    chain: ballot -> funding -> implementation
+    counts: 1,491 projects; 678 funded; 92,156 surveys
+    names_present: false
+    license: none stated
+    access: public
+    eval_uses: [classification]
+    files:
+      - name: projects.csv
+        url: "https://data.cityofnewyork.us/api/views/wwhr-5ven/rows.csv?accessType=DOWNLOAD"
+        format: csv
+        columns: [Vote Year, Council District, Category, Project Number, Title, Description, Address, Votes, Winner, Cost, BP Funding, Borough Code, Latitude, Longitude, Postcode, Community Board, Census Tract, BIN, BBL, NTA]
+      - name: project_tracker.csv
+        url: "https://data.cityofnewyork.us/api/views/qm5f-frjb/rows.csv?accessType=DOWNLOAD"
+        format: csv
+      - name: surveys.csv
+        url: "https://data.cityofnewyork.us/api/views/wa6b-r9jh/rows.csv?accessType=DOWNLOAD"
+        format: csv
+
+  - id: columbus-common
+    name: Columbus PB on the Common platform
+    publisher: One Project
+    homepage: https://github.com/oneprojectorg/common
+    description: >-
+      Live 2026 city PB cycle on our own platform, with proposal text,
+      locations, categories, shortlist decisions, and votes.
+    resident_text: proposal titles and summaries, on platform
+    compressed: shortlist decisions and merge notes by admins
+    chain: proposals -> shortlist -> ballot -> funded, in progress
+    counts: $9M pilot, mid-cycle
+    names_present: true
+    license: internal
+    access: internal
+    access_note: Export anonymized proposals through the Common service layer once the cycle allows; nothing is public.
+    eval_uses: [summarization, classification, merge, screening]
+    files: []
+
+  - id: paris-budget-participatif
+    name: Paris Budget Participatif winning projects
+    publisher: Ville de Paris Open Data
+    homepage: https://opendata.paris.fr/explore/dataset/bp_projets_gagnants/
+    description: >-
+      Winning projects since 2014 with budget, arrondissement, theme,
+      implementation dates, and a priority-neighborhood flag.
+    resident_text: none; winning project titles only
+    compressed: project titles and themes written by staff
+    chain: winners -> implementation
+    counts: 1,446 projects
+    names_present: false
+    license: ODbL
+    access: public
+    eval_uses: [classification]
+    files:
+      - name: bp_projets_gagnants.csv
+        url: https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/bp_projets_gagnants/exports/csv
+        format: csv
+        note: semicolon-delimited, UTF-8 with BOM; thematique holds the theme label
+
+  - id: madrid-presupuestos-participativos
+    name: Madrid presupuestos participativos, winning projects
+    publisher: Ayuntamiento de Madrid, Portal de datos abiertos
+    homepage: https://datos.madrid.es/dataset/300312-0-presupuestos-participativos
+    description: >-
+      Winning projects per year with district, cost, responsible unit, and
+      execution status code. Proposal text lives on Decide Madrid.
+    resident_text: none; project titles only
+    compressed: none
+    chain: winners -> execution
+    counts: 2016 onward
+    names_present: false
+    license: Madrid open data terms
+    access: public
+    eval_uses: []
+    files:
+      - name: presupuestos-participativos.csv
+        url: https://datos.madrid.es/egob/catalogo/300312-0-presupuestos-participativos.csv
+        format: csv
+        note: semicolon-delimited, UTF-8 with BOM
+
+  - id: zurich-pb-experiment
+    name: Zurich participatory budgeting digital voting experiment
+    publisher: Zenodo
+    homepage: https://zenodo.org/records/13916894
+    description: >-
+      Lab experiment in which 180 students vote on 24 hypothetical projects
+      under six ballot formats and rate fairness.
+    resident_text: none
+    compressed: none
+    chain: ballots -> outcomes
+    counts: 180 participants; 24 projects
+    names_present: false
+    license: CC BY 4.0
+    access: public
+    eval_uses: []
+    files:
+      - name: zurich-pb-voting-v1.0.0.zip
+        url: https://zenodo.org/api/records/13916894/files/joshuay1/zurich-pb-voting-v1.0.0.zip/content
+        format: zip
+        unzip: true
+
+  - id: demotec-pb-experiments
+    name: DEMOTEC participatory budgeting experiments
+    publisher: Zenodo
+    homepage: https://zenodo.org/records/15543266
+    description: >-
+      EU project's coded utterances from PB simulations in seven countries,
+      with a discourse quality codebook and participant questionnaires.
+    resident_text: coded utterances, not raw transcripts
+    compressed: discourse quality codes
+    chain: simulated sessions only
+    counts: 7 countries
+    names_present: false
+    license: CC BY 4.0
+    access: public
+    eval_uses: []
+    files:
+      - name: DEMOTEC_PBexperiments_discourseData_DQI.csv
+        url: https://zenodo.org/api/records/15543266/files/DEMOTEC_PBexperiments_discourseData_DQI.csv/content
+        format: csv
+      - name: DEMOTEC_exps_codebook_DQI.pdf
+        url: https://zenodo.org/api/records/15543266/files/DEMOTEC_exps_codebook_DQI.pdf/content
+        format: pdf
+      - name: DEMOTEC_PBexperiments_questionnaireData.csv
+        url: https://zenodo.org/api/records/15534003/files/DEMOTEC_PBexperiments_questionnaireData.csv/content
+        format: csv
+      - name: DEMOTEC_PBexperiments_questionnaireData_codebook.pdf
+        url: https://zenodo.org/api/records/15534003/files/DEMOTEC_PBexperiments_questionnaireData_codebook.pdf/content
+        format: pdf
+
+  - id: aarau-stadtidee
+    name: Aarau "Stadtidee" 2023
+    publisher: City of Aarau and the Method of Equal Shares research team
+    homepage: https://equalshares.net/
+    description: >-
+      Swiss city's first PB using the Method of Equal Shares, with linked
+      pre- and post-vote surveys. No public release found.
+    resident_text: unknown
+    compressed: unknown
+    chain: ideas -> ballot -> votes
+    counts: 161 ideas; 33 on ballot; 1,703 voters
+    names_present: false
+    license: no release found
+    access: request
+    access_note: Ask the Equal Shares authors for the idea texts and surveys.
+    eval_uses: []
+    files: []
+
+  - id: zambrano-augmented-pabulib
+    name: Zambrano et al. augmented Pabulib
+    publisher: paper authors
+    homepage: https://pabulib.org
+    description: >-
+      Pabulib ballots for Toulouse, Wrocław, and Warsaw with scraped project
+      descriptions of about 150 words. Promised after publication.
+    resident_text: project descriptions, about 150 words
+    compressed: none
+    chain: shortlist survival
+    counts: 3 cities, multi-year
+    names_present: false
+    license: promised post-publication
+    access: unreleased
+    eval_uses: [classification]
+    files: []
+
+  - id: us-pb-request-candidates
+    name: Durham, Seattle, Chicago, Boston, and NYC People's Money
+    publisher: various U.S. cities
+    homepage: https://www.participatorybudgeting.org/
+    description: >-
+      Large U.S. PB processes with no bulk export. Some of their ballots
+      appear in the Stanford set. Candidates for a data request.
+    resident_text: unknown
+    compressed: unknown
+    chain: unknown
+    counts: varies
+    names_present: false
+    license: unknown
+    access: request
+    eval_uses: []
+    files: []
