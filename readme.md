@@ -73,9 +73,23 @@ and [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togethe
 for configuration details.
 
 The main configuration is [`promptfooconfig.yaml`](promptfooconfig.yaml). It
-contains a summarization case, one classification case per category of an
-example neighborhood improvement fund, and merge outcomes for duplicate,
-related-but-distinct, and vague proposal pairs. Categories on Common are
+follows the layout from Promptfoo's
+[configuration guide](https://www.promptfoo.dev/docs/configuration/guide/):
+the prompt template lives in [`prompts/`](prompts/), each task's test cases
+live in their own YAML file under [`tests/`](tests/), and `defaultTest` in the
+main config holds the category list and grounding rubric shared by every case.
+
+- [`tests/summarization.yaml`](tests/summarization.yaml): one case that
+  writes the proposal-card summary.
+- [`tests/classification.yaml`](tests/classification.yaml): one case per
+  category of an example neighborhood improvement fund.
+- [`tests/merge.yaml`](tests/merge.yaml): merge outcomes for duplicate,
+  related-but-distinct, and vague proposal pairs.
+
+To add a task, create a new file under `tests/` and list it under `tests:`
+in the main config.
+
+Categories on Common are
 defined per decision, so each case passes the decision's category list in the
 input rather than assuming a global taxonomy. The classification labels and
 merge decisions have direct output checks; rubrics also assess rationale and

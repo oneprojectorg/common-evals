@@ -1,0 +1,79 @@
+# Classification: assign a proposal to exactly one of the decision's categories.
+# The category list comes from defaultTest.vars.categories in promptfooconfig.yaml,
+# so every case here uses the same label set. One case per category.
+
+- description: Garden rebuild is Parks & Green Spaces
+  vars:
+    task: >-
+      Classify the proposal into exactly one of the decision's categories:
+      {{categories}}. Give one short reason.
+    input: >-
+      Title: Community Garden Revamp at Linden Park
+
+      Summary: Rebuild the twelve raised beds at the Linden Park community
+      garden and add a water line so gardeners no longer carry water from
+      the recreation center.
+
+      Budget: $18,500 USD
+  assert:
+    - type: contains
+      value: "CLASSIFICATION: Parks & Green Spaces"
+    - type: llm-rubric
+      value: Classifies the proposal as Parks & Green Spaces and gives a reason consistent with the garden and park in the summary.
+
+- description: Protected bike lane is Streets & Transportation
+  vars:
+    task: >-
+      Classify the proposal into exactly one of the decision's categories:
+      {{categories}}. Give one short reason.
+    input: >-
+      Title: Protected bike lane on Cleveland Avenue
+
+      Summary: Add a curb-protected bike lane on Cleveland Avenue between
+      11th Avenue and Hudson Street, where three cyclists were hit last year.
+      The lane would connect the high school to the Linden branch library.
+
+      Budget: $62,000 USD
+  assert:
+    - type: contains
+      value: "CLASSIFICATION: Streets & Transportation"
+    - type: llm-rubric
+      value: Classifies the proposal as Streets & Transportation and cites the bike lane or street from the summary.
+
+- description: Library homework help is Youth & Education, not Arts & Culture
+  vars:
+    task: >-
+      Classify the proposal into exactly one of the decision's categories:
+      {{categories}}. Give one short reason.
+    input: >-
+      Title: After-school homework help at the Linden branch library
+
+      Summary: Pay two part-time tutors to run free homework help for
+      middle-school students at the Linden branch library, four afternoons a
+      week during the school year.
+
+      Budget: $24,000 USD
+  assert:
+    - type: contains
+      value: "CLASSIFICATION: Youth & Education"
+    - type: llm-rubric
+      value: Classifies the proposal as Youth & Education and cites the tutoring or students from the summary. Does not pick Arts & Culture because the program is at a library.
+
+- description: Translating the fund's forms is Other
+  vars:
+    task: >-
+      Classify the proposal into exactly one of the decision's categories:
+      {{categories}}. Give one short reason.
+    input: >-
+      Title: Translate the fund's forms into Somali and Spanish
+
+      Summary: Pay for professional translation of the Improvement Fund's
+      proposal form, voting guide, and results page into Somali and Spanish
+      so more Linden residents can take part in the decision.
+
+      Budget: $6,000 USD
+  assert:
+    - type: contains
+      value: "CLASSIFICATION: Other"
+    - type: llm-rubric
+      value: Classifies the proposal as Other because it improves the decision process itself rather than parks, streets, arts, or youth programs, and says so.

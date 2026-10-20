@@ -9,30 +9,14 @@ description: Common proposal evaluation starter
 # decision by its admins, so each case passes the decision's category list in
 # the input. Admins merge duplicate proposals; the merge note is sent to the
 # authors of the merged-away proposal.
+#
+# Layout (see https://www.promptfoo.dev/docs/configuration/guide/):
+#   prompts/   prompt templates, referenced with file://
+#   tests/     one YAML file of test cases per task, referenced with file://
+#   defaultTest below holds the vars and assertions shared by every case.
 
 prompts:
-  - |
-    You are helping an organization run a decision process on Common, One
-    Project's platform for participatory decision-making. Members submit
-    proposals, reviewers shortlist them, and members vote on the shortlist.
-    A proposal has a title and a summary, and may include a budget, a
-    location, and a category chosen from the decision's own category list.
-
-    Task: {{task}}
-
-    Return a concise, evidence-based result in plain text. Do not invent
-    details that are not present in the input. For classification tasks,
-    start with CLASSIFICATION: <one category label copied exactly from the
-    list>, then give a brief rationale. For merge tasks, start with MERGE
-    DECISION: <yes, no, or insufficient information>, then give a brief
-    rationale. Merge only proposals that request materially the same change
-    for the same place or people; related but distinct proposals should not
-    be merged. If the summaries do not provide enough detail to compare the
-    requested changes, choose insufficient information. Choose no only when
-    both changes are clear and materially distinct.
-
-    Input:
-    {{input}}
+  - file://prompts/proposal-assistant.txt
 
 providers:
   - id: openai:gpt-4o-mini
@@ -57,171 +41,9 @@ defaultTest:
     - type: llm-rubric
       value: The response is relevant to the requested task, grounded in the provided proposal text, and does not invent unsupported facts.
 
+# Files are listed explicitly so results keep this order. To pick up every
+# file in the folder instead, use a single entry: file://tests/*.yaml
 tests:
-  # --- Summarization -------------------------------------------------------
-
-  - vars:
-      task: >-
-        Summarize the proposal in 2-3 sentences for the proposal card. Include
-        what it would change, who benefits, and the requested budget.
-      input: >-
-        Decision: Linden Neighborhood Improvement Fund 2026 (total budget $250,000)
-
-        Title: Community Garden Revamp at Linden Park
-
-        Summary: Rebuild the twelve raised beds at the Linden Park community
-        garden, which have rotted and are unusable, and add a water line so
-        gardeners no longer carry water from the recreation center. The garden
-        is used by about forty households, and the Linden Garden Club will
-        maintain the beds after the rebuild.
-
-        Budget: $18,500 USD
-
-        Location: Linden Park, Columbus, OH
-    assert:
-      - type: llm-rubric
-        value: >-
-          Summarizes rebuilding the garden beds and adding a water line, says
-          who benefits (the households or gardeners who use the garden), and
-          states the $18,500 budget. Does not claim the proposal is funded,
-          shortlisted, or supported by the city.
-
-  # --- Classification ------------------------------------------------------
-
-  - vars:
-      task: >-
-        Classify the proposal into exactly one of the decision's categories:
-        {{categories}}. Give one short reason.
-      input: >-
-        Title: Community Garden Revamp at Linden Park
-
-        Summary: Rebuild the twelve raised beds at the Linden Park community
-        garden and add a water line so gardeners no longer carry water from
-        the recreation center.
-
-        Budget: $18,500 USD
-    assert:
-      - type: contains
-        value: "CLASSIFICATION: Parks & Green Spaces"
-      - type: llm-rubric
-        value: Classifies the proposal as Parks & Green Spaces and gives a reason consistent with the garden and park in the summary.
-
-  - vars:
-      task: >-
-        Classify the proposal into exactly one of the decision's categories:
-        {{categories}}. Give one short reason.
-      input: >-
-        Title: Protected bike lane on Cleveland Avenue
-
-        Summary: Add a curb-protected bike lane on Cleveland Avenue between
-        11th Avenue and Hudson Street, where three cyclists were hit last year.
-        The lane would connect the high school to the Linden branch library.
-
-        Budget: $62,000 USD
-    assert:
-      - type: contains
-        value: "CLASSIFICATION: Streets & Transportation"
-      - type: llm-rubric
-        value: Classifies the proposal as Streets & Transportation and cites the bike lane or street from the summary.
-
-  - vars:
-      task: >-
-        Classify the proposal into exactly one of the decision's categories:
-        {{categories}}. Give one short reason.
-      input: >-
-        Title: After-school homework help at the Linden branch library
-
-        Summary: Pay two part-time tutors to run free homework help for
-        middle-school students at the Linden branch library, four afternoons a
-        week during the school year.
-
-        Budget: $24,000 USD
-    assert:
-      - type: contains
-        value: "CLASSIFICATION: Youth & Education"
-      - type: llm-rubric
-        value: Classifies the proposal as Youth & Education and cites the tutoring or students from the summary. Does not pick Arts & Culture because the program is at a library.
-
-  - vars:
-      task: >-
-        Classify the proposal into exactly one of the decision's categories:
-        {{categories}}. Give one short reason.
-      input: >-
-        Title: Translate the fund's forms into Somali and Spanish
-
-        Summary: Pay for professional translation of the Improvement Fund's
-        proposal form, voting guide, and results page into Somali and Spanish
-        so more Linden residents can take part in the decision.
-
-        Budget: $6,000 USD
-    assert:
-      - type: contains
-        value: "CLASSIFICATION: Other"
-      - type: llm-rubric
-        value: Classifies the proposal as Other because it improves the decision process itself rather than parks, streets, arts, or youth programs, and says so.
-
-  # --- Merge decisions -----------------------------------------------------
-
-  - vars:
-      task: >-
-        An admin is deciding whether to merge the second proposal into the
-        first. Return yes only if both proposals request materially the same
-        change for the same place or people. Explain the overlap.
-      input: >-
-        Proposal: Community Garden Revamp at Linden Park
-
-        Summary: Rebuild the twelve raised beds at the Linden Park community
-        garden and add a water line so gardeners no longer carry water from
-        the recreation center.
-
-        Related proposal: Fix the Linden Park garden beds and add a spigot
-
-        Summary: The raised beds at the Linden Park community garden are
-        rotting and need to be replaced, and the garden needs its own water
-        spigot instead of hoses from the rec center.
-    assert:
-      - type: contains
-        value: "MERGE DECISION: yes"
-      - type: llm-rubric
-        value: Recommends merging because both proposals ask to replace the Linden Park garden beds and add a water connection, and names that overlap.
-
-  - vars:
-      task: >-
-        An admin is deciding whether to merge the second proposal into the
-        first. Return yes only if both proposals request materially the same
-        change for the same place or people. Explain the key overlap or
-        difference.
-      input: >-
-        Proposal: Community Garden Revamp at Linden Park
-
-        Summary: Rebuild the twelve raised beds at the Linden Park community
-        garden and add a water line.
-
-        Related proposal: Tool-lending library at the Linden recreation center
-
-        Summary: Buy a shared set of garden and home-repair tools that Linden
-        residents can borrow for free from the recreation center front desk.
-    assert:
-      - type: contains
-        value: "MERGE DECISION: no"
-      - type: llm-rubric
-        value: Recommends not merging because rebuilding the garden beds and starting a tool-lending library are related but distinct changes, and explains that distinction.
-
-  - vars:
-      task: >-
-        An admin is deciding whether to merge the second proposal into the
-        first. If the summaries are not enough to decide, say so and state
-        what is missing.
-      input: >-
-        Proposal: Improve Linden Park
-
-        Summary: Linden Park needs improvements.
-
-        Related proposal: Park upgrades
-
-        Summary: Upgrade the park.
-    assert:
-      - type: contains
-        value: "MERGE DECISION: insufficient information"
-      - type: llm-rubric
-        value: Says the summaries are too vague to tell whether both proposals request the same change, identifies what is missing (for example which park or which improvements), and does not invent details.
+  - file://tests/summarization.yaml
+  - file://tests/classification.yaml
+  - file://tests/merge.yaml

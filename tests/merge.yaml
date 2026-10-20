@@ -1,0 +1,70 @@
+# Merge decisions: should an admin merge the second proposal into the first?
+# One case per outcome: yes (duplicate), no (related but distinct), and
+# insufficient information (summaries too vague to compare).
+
+- description: Duplicate garden proposals should merge
+  vars:
+    task: >-
+      An admin is deciding whether to merge the second proposal into the
+      first. Return yes only if both proposals request materially the same
+      change for the same place or people. Explain the overlap.
+    input: >-
+      Proposal: Community Garden Revamp at Linden Park
+
+      Summary: Rebuild the twelve raised beds at the Linden Park community
+      garden and add a water line so gardeners no longer carry water from
+      the recreation center.
+
+      Related proposal: Fix the Linden Park garden beds and add a spigot
+
+      Summary: The raised beds at the Linden Park community garden are
+      rotting and need to be replaced, and the garden needs its own water
+      spigot instead of hoses from the rec center.
+  assert:
+    - type: contains
+      value: "MERGE DECISION: yes"
+    - type: llm-rubric
+      value: Recommends merging because both proposals ask to replace the Linden Park garden beds and add a water connection, and names that overlap.
+
+- description: Garden rebuild and tool library are related but distinct
+  vars:
+    task: >-
+      An admin is deciding whether to merge the second proposal into the
+      first. Return yes only if both proposals request materially the same
+      change for the same place or people. Explain the key overlap or
+      difference.
+    input: >-
+      Proposal: Community Garden Revamp at Linden Park
+
+      Summary: Rebuild the twelve raised beds at the Linden Park community
+      garden and add a water line.
+
+      Related proposal: Tool-lending library at the Linden recreation center
+
+      Summary: Buy a shared set of garden and home-repair tools that Linden
+      residents can borrow for free from the recreation center front desk.
+  assert:
+    - type: contains
+      value: "MERGE DECISION: no"
+    - type: llm-rubric
+      value: Recommends not merging because rebuilding the garden beds and starting a tool-lending library are related but distinct changes, and explains that distinction.
+
+- description: Vague park proposals give insufficient information
+  vars:
+    task: >-
+      An admin is deciding whether to merge the second proposal into the
+      first. If the summaries are not enough to decide, say so and state
+      what is missing.
+    input: >-
+      Proposal: Improve Linden Park
+
+      Summary: Linden Park needs improvements.
+
+      Related proposal: Park upgrades
+
+      Summary: Upgrade the park.
+  assert:
+    - type: contains
+      value: "MERGE DECISION: insufficient information"
+    - type: llm-rubric
+      value: Says the summaries are too vague to tell whether both proposals request the same change, identifies what is missing (for example which park or which improvements), and does not invent details.
