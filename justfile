@@ -18,6 +18,10 @@ eval-local:
 eval-together:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Llama-3.3" --grader "togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo"
 
+# Run and grade with Anthropic Claude Sonnet 5.5 only. Set ANTHROPIC_API_KEY.
+eval-anthropic:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "anthropic:messages:claude-sonnet-5-5"
+
 # Open the latest evaluation results in Promptfoo's web viewer.
 view:
     npx --yes promptfoo@latest view
@@ -45,3 +49,12 @@ build-cases *args:
 # Run the generated cases with llama-server, like eval-local. Run `just build-cases` and start the server first.
 eval-generated:
     npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
+
+# templates/slidy/ holds the W3C Slidy script, stylesheet, and icons, so the build needs no network and no pandoc
+# HTTP support; --embed-resources inlines them. The theme is copied from oneproject-knowledge-base/templates/.
+# Build a self-contained Slidy deck from a Markdown file, for example `just build-presentation presentations/common-evals.md`.
+build-presentation FILE:
+    pandoc -t slidy --embed-resources --standalone --variable slidy-url=templates/slidy --css templates/ef-cherie-slidy.css {{FILE}} -o {{replace(FILE, ".md", ".html")}}
+
+# Rebuild the deck on how this repository works: presentations/common-evals.html.
+presentation: (build-presentation "presentations/common-evals.md")

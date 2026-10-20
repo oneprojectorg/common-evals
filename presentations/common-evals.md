@@ -1,5 +1,5 @@
 ---
-title: How Common Evals works
+title: Common Evals
 author: Ivan Willig
 date: 2026-10-20
 description: Promptfoo cases for Common's proposal tasks, and the real datasets behind them.
@@ -7,34 +7,37 @@ description: Promptfoo cases for Common's proposal tasks, and the real datasets 
 
 # The problem
 
-Common asks a model to summarize, classify, and merge community proposals.
-We have no shared way to say whether a model does that well.
+We want to use LLM to summarize and process information for Common.
 
-- A prompt change looks fine on three examples and breaks on the fourth
-- Each model is tried by hand, by one person, once
-- Nothing records which proposals were tested or what the right answer was
+We want to understand
 
-::: handout
-Open on the room's problem: anyone who has tuned a prompt by eye has lived
-this. The deck is about replacing that with a repeatable run.
-:::
+- Understand the costs for running these systems
+- Failure cases for LLM's. Reproduce existing power structures.
+- Understand how to maximize smaller and open models
+- Compare open and closed models
+- Help craft system prompt/tools for agent in common
 
 # How Common Evals works {.dark}
 
 # What it is
 
+Private Repo
+
+[https://github.com/oneprojectorg/common-evals](https://github.com/oneprojectorg/common-evals)
+
 A repository of evaluation cases for Common's proposal tasks, run by
-[Promptfoo](https://www.promptfoo.dev/) from YAML, against any model, with one
-command.
+[Promptfoo](https://www.promptfoo.dev/) from YAML. Support for running
+these models locally via [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
 ```sh
+## blocks
+just serve-apertus
+
+## In new terminal
 just eval-local
 ```
 
-::: handout
-One sentence to repeat tomorrow: "it is a set of proposal tasks with known
-answers that any model can be scored on."
-:::
+### [http://localhost:15500/eval](http://localhost:15500/eval)
 
 # Three tasks from the product
 
@@ -76,18 +79,22 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 Each recipe grades with the same model it tests. The local run is therefore a
 smoke test for rubric scores. The exact-match checks stay reliable.
 
-::: handout
-Say why grading with the same model is a caveat: a model agrees with itself.
-Point out that the classification and merge labels do not depend on it.
-:::
+# Dataset {.dark}
 
-# Real proposals, not invented ones {.dark}
+[https://claude.ai/artifact/JCoCtbMhRTSdd55CpLiNd1?sk=ThpAG1eLa0Q-GDpssOgqqQ#d860b891-eb01](https://claude.ai/artifact/JCoCtbMhRTSdd55CpLiNd1?sk=ThpAG1eLa0Q-GDpssOgqqQ#d860b891-eb01)
 
 # The dataset catalog
 
-The hand-written cases are invented. `data/catalog.yaml` lists 19 public
-participatory budgeting and civic-input datasets with what residents wrote and
-what staff or an AI made of it.
+Thanks Sasha for the list. This is data/catalog.yaml is just Sasha's
+list translated into YAML. We can then use that to download the
+information.
+
+
+```sh
+just download cambridge-pb       # data/raw/cambridge-pb/, with a manifest
+just build-cases                 # tests/generated/*.yaml, seeded sample per label
+just eval-generated              # same prompt and providers, generated cases only
+```
 
 | Dataset | Resident text | Compressed by | Chain |
 |---|---|---|---|
@@ -98,27 +105,10 @@ what staff or an AI made of it.
 
 Each entry records access, license, and whether author names are present.
 
-# From download to score
-
-```sh
-just download cambridge-pb       # data/raw/cambridge-pb/, with a manifest
-just build-cases                 # tests/generated/*.yaml, seeded sample per label
-just eval-generated              # same prompt and providers, generated cases only
-```
-
 - The builder samples a fixed number of rows per label with a seed, so a rerun
   gives the same cases
 - It never copies an author name into a case
 - Downloads and generated cases stay out of git
-
-# What it costs
-
-|  | Needs |
-|---|---|
-| Hardware | a laptop; the local model is an 8B GGUF, about 8.5 GB |
-| Tooling | Node 22.18 or later, just, `npm install` once |
-| Money | nothing for the local run; cents per run on GPT-4o mini |
-| Data | about 600 MB for every public dataset, 10 MB for the three that build cases |
 
 # What to do next
 
@@ -127,8 +117,3 @@ Pick the first real decision to ground the cases.
 - Cambridge committees and Engaged California topics are ready today
 - Columbus on Common is the target once proposals can be exported anonymized
 - Merge criteria still need a definition before merge cases can use real pairs
-
-::: handout
-The ask: one decision owner to confirm the category list and a sample of
-proposals we may use. Everything else is a `just` recipe.
-:::

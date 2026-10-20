@@ -29,6 +29,8 @@ providers:
       useDefaultApiKey: false
   - id: togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo
     label: Together AI Llama 3.3 70B
+  - id: anthropic:messages:claude-sonnet-5-5
+    label: Anthropic Claude Sonnet 5.5
 
 defaultTest:
   vars:

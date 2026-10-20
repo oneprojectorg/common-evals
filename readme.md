@@ -57,8 +57,7 @@ llama-server -m /path/to/model.gguf --alias local-model --port 8080
 
 Then run the local eval. llama-server serves both the model under test and the
 rubric grader, so no paid grading API is needed. Treat its rubric scores as a
-smoke test, since the same model grades its own output; the direct output checks
-on classification and merge cases remain reliable:
+smoke test, for the reason given under the Anthropic recipe below:
 
 ```sh
 just eval-local
@@ -71,11 +70,41 @@ export TOGETHER_API_KEY=...
 just eval-together
 ```
 
+Run and grade with Anthropic's Claude Sonnet 5.5 using `ANTHROPIC_API_KEY`:
+
+```sh
+export ANTHROPIC_API_KEY=...
+just eval-anthropic
+```
+
+Sonnet 5.5 runs at high effort by default, which is more thinking than a
+short classification or merge case needs. To spend less on a large run, add an
+effort setting to the provider entry in `promptfooconfig.yaml`:
+
+```yaml
+  - id: anthropic:messages:claude-sonnet-5-5
+    label: Anthropic Claude Sonnet 5.5
+    config:
+      effort: low
+```
+
+Every recipe grades with the model it tests, so a model's rubric scores
+reflect its agreement with its own answers. The exact-match checks on
+classification labels and merge decisions do not depend on the grader. For an
+independent rubric score, pass a different model to `--grader`, for example
+grading the local model's answers with Sonnet 5.5:
+
+```sh
+npx promptfoo@latest eval -c promptfooconfig.yaml \
+  --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5 -j 1 --no-cache
+```
+
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
-the local alias, llama-server URL, or Together AI model. See Promptfoo's
-[OpenAI-compatible provider docs](https://www.promptfoo.dev/docs/providers/openai/)
-and [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togetherai/)
+the local alias, llama-server URL, Together AI model, or Claude model. See
+Promptfoo's [OpenAI-compatible provider docs](https://www.promptfoo.dev/docs/providers/openai/),
+[Together AI provider docs](https://www.promptfoo.dev/docs/providers/togetherai/),
+and [Anthropic provider docs](https://www.promptfoo.dev/docs/providers/anthropic/)
 for details.
 
 ## Hand-written cases
