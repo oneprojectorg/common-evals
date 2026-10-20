@@ -5,9 +5,14 @@ set shell := ["bash", "-cu"]
 eval:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-4o-mini" --grader "openai:gpt-4o-mini"
 
-# Run and grade with llama-server only. Start it on port 8080 first.
+# Serve Apertus 1.5 8B (text-only GGUF) on port 8080 for eval-local. First run downloads ~8.5 GB.
+serve-apertus:
+    llama-server --hf-repo andreasmartin/apertus-v1.5-8b-text-Q8_0-GGUF --hf-file apertus-v1.5-8b-text-q8_0.gguf --alias local-model --port 8080 -c 8192 --jinja
+
+# Caching is off because the local-model alias can point at any model, so cached answers would be stale.
+# Run and grade with llama-server only. Start it on port 8080 first, for example with `just serve-apertus`.
 eval-local:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
 
 # Run and grade with Together AI only. Set TOGETHER_API_KEY.
 eval-together:

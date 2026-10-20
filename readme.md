@@ -39,6 +39,15 @@ it running while the evaluation runs:
 llama-server -m /path/to/model.gguf --alias local-model --port 8080
 ```
 
+To serve [Apertus 1.5 8B](https://huggingface.co/swiss-ai/Apertus-v1.5-8B) this
+way, use the recipe below. It loads a community text-only GGUF conversion, since
+the official checkpoint is multimodal and only runs under vLLM or Transformers.
+The first run downloads about 8.5 GB:
+
+```sh
+just serve-apertus
+```
+
 Then run the local eval. llama-server serves both the model under test and the
 rubric grader, so no paid grading API is needed:
 
