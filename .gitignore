@@ -1,0 +1,9 @@
+# Downloaded datasets; rebuild with `just download`.
+data/raw/
+# Test cases and config built from downloaded data; rebuild with `just build-cases`.
+tests/generated/
+promptfooconfig.generated.yaml
+# Dependencies for scripts/; restore with `npm install`.
+node_modules/
+# Local model binaries downloaded next to the repo.
+*.llamafile
