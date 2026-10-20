@@ -16,7 +16,7 @@ proposals should be merged.
 
 ## Run evaluations
 
-Requires [Node.js](https://nodejs.org/) and [just](https://github.com/casey/just).
+Requires [Node.js](https://nodejs.org/) 22.18 or later and [just](https://github.com/casey/just).
 From the repository root, validate the configuration and view the latest results with:
 
 ```sh
@@ -89,6 +89,23 @@ main config holds the category list and grounding rubric shared by every case.
 To add a task, create a new file under `tests/` and list it under `tests:`
 in the main config.
 
+## Real datasets
+
+The hand-written cases are invented examples. [`data/catalog.yaml`](data/catalog.yaml)
+lists public participatory budgeting and civic-input datasets with real
+proposals, staff decisions, and labels, and [`data/readme.md`](data/readme.md)
+explains the fields, licenses, and name handling. The scripts need `npm install` once.
+
+```sh
+just catalog                       # list datasets and access status
+just download cambridge-pb         # fetch into data/raw/<id>/
+just build-cases                   # write tests/generated/*.yaml from the data
+just eval-generated                # run the generated cases on llama-server
+```
+
+The scripts are TypeScript under [`scripts/`](scripts/) and run directly on
+Node without a build step.
+
 Categories on Common are
 defined per decision, so each case passes the decision's category list in the
 input rather than assuming a global taxonomy. The classification labels and
@@ -104,6 +121,8 @@ single provider and its matching grader.
   merge suggestions are starting points; drafting the merge note sent to
   merged-away authors and review rubric scoring are candidates.
 - Which real decisions should supply category lists and sample proposals?
+  The catalog's Cambridge committees and Engaged California topics are the
+  first candidates; Columbus data on Common is the target once exportable.
 - What criteria should govern whether proposals are merged? Common records a
   merge as an admin action with a note, and does not define the criteria.
 - Which metrics best assess quality? Consider combining task-specific checks

@@ -25,3 +25,23 @@ view:
 # Validate the YAML configuration without making model calls.
 validate:
     npx --yes promptfoo@latest validate -c promptfooconfig.yaml
+
+# Print the dataset catalog (data/catalog.yaml) with access status and file counts.
+catalog:
+    node scripts/download.ts --list
+
+# Download one or more catalog datasets into data/raw/<id>/, for example `just download cambridge-pb`.
+download +ids:
+    node scripts/download.ts {{ids}}
+
+# Download every public dataset in the catalog (about 600 MB; Habermas Machine is most of it).
+download-all:
+    node scripts/download.ts --all
+
+# Build Promptfoo test files under tests/generated/ from the downloaded datasets.
+build-cases *args:
+    node scripts/build-cases.ts {{args}}
+
+# Run the generated cases with llama-server, like eval-local. Run `just build-cases` and start the server first.
+eval-generated:
+    npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
