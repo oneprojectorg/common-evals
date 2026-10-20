@@ -1,5 +1,10 @@
-# Run from the repository root. Requires Node.js, just, and llama-server for local grading.
+# Run from the repository root. `just install` brings in the toolchain; see Brewfile.
 set shell := ["bash", "-cu"]
+
+# Install the Homebrew toolchain (Brewfile) and the scripts' npm dependencies.
+install:
+    brew bundle install --file=Brewfile
+    npm install
 
 # Run and grade with OpenAI only. Set OPENAI_API_KEY.
 eval:

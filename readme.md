@@ -18,13 +18,17 @@ proposals should be merged.
 ## Setup
 
 Requires [Node.js](https://nodejs.org/) 22.18 or later and
-[just](https://github.com/casey/just). Promptfoo runs through `npx`, so only the
-dataset scripts need an install:
+[just](https://github.com/casey/just), plus llama-server for the local model and
+pandoc for the deck. On a Mac with [Homebrew](https://brew.sh/), the
+[`Brewfile`](Brewfile) installs all of them and one recipe does the rest:
 
 ```sh
-npm install
+brew install just  # once, so the recipe below can run
+just install       # brew bundle install, then npm install
 just validate      # check the configuration without model calls
 ```
+
+Promptfoo runs through `npx`, so `npm install` only covers the dataset scripts.
 
 ## Run evaluations
 
