@@ -12,7 +12,9 @@ We want to use LLM to summarize and process information for Common.
 We want to understand
 
 - Understand the costs for running these systems
-- Failure cases for LLM's. Reproduce existing power structures.
+- Failure cases for LLM's.
+  - Bad LLM Tool calls
+  - Reproduce existing power structures.
 - Understand how to maximize smaller and open models
 - Compare open and closed models
 - Help craft system prompt/tools for agent in common
@@ -38,6 +40,25 @@ just eval-local
 ```
 
 ### [http://localhost:15500/eval](http://localhost:15500/eval)
+
+# Set up in two commands
+
+Everything comes from Homebrew and npm. The `Brewfile` lists just, node,
+llama.cpp, pandoc, and the deck's typefaces, each with a comment on why.
+
+```sh
+brew install just     # once, so the recipe below can run
+just install          # brew bundle install, then npm install
+just validate         # check the configuration, no model calls
+```
+
+Promptfoo itself is not installed. Every recipe runs it through `npx`, so
+there is nothing to upgrade by hand.
+
+::: handout
+If someone has the knowledge base checked out, the Brewfile is the same shape.
+`just install` is safe to rerun; brew bundle skips what is already there.
+:::
 
 # Three tasks from the product
 
@@ -68,16 +89,48 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Three providers, one at a time
+# Four providers, one at a time
 
 | Recipe | Target and grader | Needs |
 |---|---|---|
 | `just eval` | GPT-4o mini | `OPENAI_API_KEY` |
-| `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running |
+| `just eval-anthropic` | Claude Sonnet 5.5 | `ANTHROPIC_API_KEY` |
 | `just eval-together` | Llama 3.3 70B | `TOGETHER_API_KEY` |
+| `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
 
-Each recipe grades with the same model it tests. The local run is therefore a
-smoke test for rubric scores. The exact-match checks stay reliable.
+Each recipe grades with the same model it tests. A model agreeing with its own
+answers is a smoke test for rubric scores. The exact-match checks on labels and
+merge decisions stay reliable whoever grades.
+
+::: handout
+The local run is free and private. Apertus is an 8B Swiss model served as a
+GGUF; the first start downloads about 8.5 GB.
+:::
+
+# Running it against another model
+
+Three places to change, none of them code.
+
+1. **A different hosted model.** Add a provider entry in `promptfooconfig.yaml`
+   and filter to it. Promptfoo knows `openai:`, `anthropic:messages:`,
+   `togetherai:` and many more.
+2. **A different local model.** Serve any GGUF under the same alias and the
+   local recipes pick it up unchanged:
+
+   ```sh
+   llama-server -m /path/to/model.gguf --alias local-model --port 8080
+   ```
+
+3. **A different grader.** Pass `--grader` to score one model's answers with
+   another, for example the local model graded by Sonnet 5.5:
+
+   ```sh
+   npx promptfoo@latest eval -c promptfooconfig.yaml \
+     --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5
+   ```
+
+Claude Sonnet 5.5 runs at high effort by default. For short classification
+cases, `config: { effort: low }` on its provider entry cuts the cost.
 
 # Dataset {.dark}
 
