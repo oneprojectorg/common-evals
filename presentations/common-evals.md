@@ -41,10 +41,9 @@ just eval-local
 
 ### [http://localhost:15500/eval](http://localhost:15500/eval)
 
-# Set up in two commands
+# Install
 
-Everything comes from Homebrew and npm. The `Brewfile` lists just, node,
-llama.cpp, pandoc, and the deck's typefaces, each with a comment on why.
+Use homebrew. Assumes that just is installed globally for the install.
 
 ```sh
 brew install just     # once, so the recipe below can run
@@ -54,11 +53,6 @@ just validate         # check the configuration, no model calls
 
 Promptfoo itself is not installed. Every recipe runs it through `npx`, so
 there is nothing to upgrade by hand.
-
-::: handout
-If someone has the knowledge base checked out, the Brewfile is the same shape.
-`just install` is safe to rerun; brew bundle skips what is already there.
-:::
 
 # Three tasks from the product
 
@@ -93,19 +87,14 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 
 | Recipe | Target and grader | Needs |
 |---|---|---|
-| `just eval` | GPT-4o mini | `OPENAI_API_KEY` |
-| `just eval-anthropic` | Claude Sonnet 5.5 | `ANTHROPIC_API_KEY` |
+| `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
+| `just eval-openai` | GPT-4o mini | `OPENAI_API_KEY` |
 | `just eval-together` | Llama 3.3 70B | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
 
 Each recipe grades with the same model it tests. A model agreeing with its own
 answers is a smoke test for rubric scores. The exact-match checks on labels and
 merge decisions stay reliable whoever grades.
-
-::: handout
-The local run is free and private. Apertus is an 8B Swiss model served as a
-GGUF; the first start downloads about 8.5 GB.
-:::
 
 # Running it against another model
 
@@ -163,10 +152,4 @@ Each entry records access, license, and whether author names are present.
 - It never copies an author name into a case
 - Downloads and generated cases stay out of git
 
-# What to do next
-
-Pick the first real decision to ground the cases.
-
-- Cambridge committees and Engaged California topics are ready today
-- Columbus on Common is the target once proposals can be exported anonymized
-- Merge criteria still need a definition before merge cases can use real pairs
+# Thanks!

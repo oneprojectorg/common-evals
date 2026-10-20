@@ -33,12 +33,31 @@ Promptfoo runs through `npx`, so `npm install` only covers the dataset scripts.
 ## Run evaluations
 
 Each `just` recipe selects one target provider and uses the same provider for
-rubric grading. Run the OpenAI provider with `OPENAI_API_KEY`:
+rubric grading. The default is Anthropic's Claude Sonnet 5.5, which needs
+`ANTHROPIC_API_KEY`:
+
+```sh
+export ANTHROPIC_API_KEY=...
+just eval
+just view          # open the latest results in Promptfoo's web viewer
+```
+
+Sonnet 5.5 runs at high effort by default, which is more thinking than a
+short classification or merge case needs. To spend less on a large run, add an
+effort setting to the provider entry in `promptfooconfig.yaml`:
+
+```yaml
+  - id: anthropic:messages:claude-sonnet-5-5
+    label: Anthropic Claude Sonnet 5.5
+    config:
+      effort: low
+```
+
+Run and grade with OpenAI's GPT-4o mini using `OPENAI_API_KEY`:
 
 ```sh
 export OPENAI_API_KEY=...
-just eval
-just view          # open the latest results in Promptfoo's web viewer
+just eval-openai
 ```
 
 Run a local model with
@@ -61,7 +80,7 @@ llama-server -m /path/to/model.gguf --alias local-model --port 8080
 
 Then run the local eval. llama-server serves both the model under test and the
 rubric grader, so no paid grading API is needed. Treat its rubric scores as a
-smoke test, for the reason given under the Anthropic recipe below:
+smoke test, for the reason given at the end of this section:
 
 ```sh
 just eval-local
@@ -72,24 +91,6 @@ Run and grade with the configured Together AI model using `TOGETHER_API_KEY`:
 ```sh
 export TOGETHER_API_KEY=...
 just eval-together
-```
-
-Run and grade with Anthropic's Claude Sonnet 5.5 using `ANTHROPIC_API_KEY`:
-
-```sh
-export ANTHROPIC_API_KEY=...
-just eval-anthropic
-```
-
-Sonnet 5.5 runs at high effort by default, which is more thinking than a
-short classification or merge case needs. To spend less on a large run, add an
-effort setting to the provider entry in `promptfooconfig.yaml`:
-
-```yaml
-  - id: anthropic:messages:claude-sonnet-5-5
-    label: Anthropic Claude Sonnet 5.5
-    config:
-      effort: low
 ```
 
 Every recipe grades with the model it tests, so a model's rubric scores

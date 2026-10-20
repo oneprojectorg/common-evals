@@ -6,8 +6,12 @@ install:
     brew bundle install --file=Brewfile
     npm install
 
-# Run and grade with OpenAI only. Set OPENAI_API_KEY.
+# Run and grade with Anthropic Claude Sonnet 5.5, the default. Set ANTHROPIC_API_KEY.
 eval:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "anthropic:messages:claude-sonnet-5-5"
+
+# Run and grade with OpenAI GPT-4o mini only. Set OPENAI_API_KEY.
+eval-openai:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-4o-mini" --grader "openai:gpt-4o-mini"
 
 # Serve Apertus 1.5 8B (text-only GGUF) on port 8080 for eval-local. First run downloads ~8.5 GB.
@@ -22,10 +26,6 @@ eval-local:
 # Run and grade with Together AI only. Set TOGETHER_API_KEY.
 eval-together:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Llama-3.3" --grader "togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo"
-
-# Run and grade with Anthropic Claude Sonnet 5.5 only. Set ANTHROPIC_API_KEY.
-eval-anthropic:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "anthropic:messages:claude-sonnet-5-5"
 
 # Open the latest evaluation results in Promptfoo's web viewer.
 view:
