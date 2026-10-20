@@ -29,8 +29,8 @@ providers:
       apiBaseUrl: http://127.0.0.1:8080/v1
       apiKeyRequired: false
       useDefaultApiKey: false
-  - id: togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo
-    label: Together AI Llama 3.3 70B
+  - id: togetherai:Qwen/Qwen3.8-2.4T-A95B
+    label: Together AI Qwen3.8 2.4T
 
 defaultTest:
   vars:

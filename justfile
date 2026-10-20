@@ -23,9 +23,9 @@ serve-apertus:
 eval-local:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
 
-# Run and grade with Together AI only. Set TOGETHER_API_KEY.
+# Run and grade with Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY.
 eval-together:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Llama-3.3" --grader "togetherai:meta-llama/Llama-3.3-70B-Instruct-Turbo"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Qwen3.8" --grader "togetherai:Qwen/Qwen3.8-2.4T-A95B"
 
 # Open the latest evaluation results in Promptfoo's web viewer.
 view:

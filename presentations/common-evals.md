@@ -89,7 +89,7 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 |---|---|---|
 | `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
 | `just eval-openai` | GPT-4o mini | `OPENAI_API_KEY` |
-| `just eval-together` | Llama 3.3 70B | `TOGETHER_API_KEY` |
+| `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
 
 Each recipe grades with the same model it tests. A model agreeing with its own

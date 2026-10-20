@@ -86,7 +86,7 @@ smoke test, for the reason given at the end of this section:
 just eval-local
 ```
 
-Run and grade with the configured Together AI model using `TOGETHER_API_KEY`:
+Run and grade with Qwen3.8 2.4T on Together AI using `TOGETHER_API_KEY`:
 
 ```sh
 export TOGETHER_API_KEY=...
