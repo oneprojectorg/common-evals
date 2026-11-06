@@ -82,7 +82,7 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Nine providers, one fixed grader
+# Eleven providers, one fixed grader
 
 | Recipe | Target | Needs |
 |---|---|---|
@@ -93,6 +93,7 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 | `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
 | `just eval-glm`, `eval-glm-flash` | GLM-5.3, GLM-5.3 Flash | `TOGETHER_API_KEY` |
 | `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
+| `just eval-hf-glm`, `eval-hf-qwen` | GLM-5.3, Qwen3.8 on Hugging Face | `HF_TOKEN` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
 | `just eval-matrix` | all hosted models with a key set, in one run | `ANTHROPIC_API_KEY`; other keys optional |
 

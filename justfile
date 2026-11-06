@@ -30,21 +30,29 @@ eval-openai:
 
 # Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-together:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Qwen3.8" --grader "{{grader}}"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:Qwen" --grader "{{grader}}"
 
 # Run Together AI GLM-5.3 only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-glm:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "GLM-5.3$" --grader "{{grader}}"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:zai-org/GLM-5.3$" --grader "{{grader}}"
 
 # Run Together AI GLM-5.3 Flash only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-glm-flash:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "GLM-5.3-Flash" --grader "{{grader}}"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:.*GLM-5.3-Flash" --grader "{{grader}}"
 
 # Run Together AI DeepSeek V4 Pro only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-deepseek:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "DeepSeek-V4" --grader "{{grader}}"
 
-# Run the comparison providers whose API keys are set and write results/matrix.json. The grader's key is required; OPENAI_API_KEY, GOOGLE_API_KEY, TOGETHER_API_KEY, and ANTHROPIC_API_KEY each add their models.
+# Run GLM-5.3 on Hugging Face's router only. Set HF_TOKEN and ANTHROPIC_API_KEY (grader).
+eval-hf-glm:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*GLM-5.3" --grader "{{grader}}"
+
+# Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and ANTHROPIC_API_KEY (grader).
+eval-hf-qwen:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Qwen" --grader "{{grader}}"
+
+# Run the comparison providers whose API keys are set and write results/matrix.json. The grader's key is required; ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, TOGETHER_API_KEY, and HF_TOKEN each add their models.
 eval-matrix:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -61,10 +69,11 @@ eval-matrix:
         exit 1
     fi
     providers=()
-    [ -n "${ANTHROPIC_API_KEY:-}" ] && providers+=("claude-sonnet-5-5" "claude-opus-5-5") || echo "ANTHROPIC_API_KEY not set; skipping the Claude models"
+    [ -n "${ANTHROPIC_API_KEY:-}" ] && providers+=("anthropic:") || echo "ANTHROPIC_API_KEY not set; skipping the Claude models"
     [ -n "${OPENAI_API_KEY:-}" ] && providers+=("gpt-6-luna") || echo "OPENAI_API_KEY not set; skipping GPT-6 Luna"
-    [ -n "${GOOGLE_API_KEY:-}" ] && providers+=("gemini-3.6-flash") || echo "GOOGLE_API_KEY not set; skipping Gemini 3.6 Flash"
-    [ -n "${TOGETHER_API_KEY:-}" ] && providers+=("GLM-5.3" "DeepSeek-V4" "Qwen3.8") || echo "TOGETHER_API_KEY not set; skipping the Together AI models"
+    [ -n "${GOOGLE_API_KEY:-}" ] && providers+=("google:") || echo "GOOGLE_API_KEY not set; skipping Gemini 3.6 Flash"
+    [ -n "${TOGETHER_API_KEY:-}" ] && providers+=("togetherai:") || echo "TOGETHER_API_KEY not set; skipping the Together AI models"
+    [ -n "${HF_TOKEN:-}${HF_API_TOKEN:-}" ] && providers+=("huggingface:") || echo "HF_TOKEN not set; skipping the Hugging Face models"
     if [ ${#providers[@]} -eq 0 ]; then
         echo "no provider API keys are set; nothing to run" >&2
         exit 1

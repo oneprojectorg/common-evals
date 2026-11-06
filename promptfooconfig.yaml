@@ -34,6 +34,13 @@ providers:
     label: Together AI GLM-5.3 Flash
   - id: togetherai:deepseek-ai/DeepSeek-V4-Pro
     label: Together AI DeepSeek V4 Pro
+  # The same GLM and Qwen checkpoints served by Hugging Face's inference
+  # router (router.huggingface.co). Needs HF_TOKEN. Comparing a Together row
+  # with its Hugging Face row shows hosting differences, not model ones.
+  - id: huggingface:chat:zai-org/GLM-5.3
+    label: Hugging Face GLM-5.3
+  - id: huggingface:chat:Qwen/Qwen3.8-2.4T-A95B
+    label: Hugging Face Qwen3.8 2.4T
   # Google's current GA model (the Pro tier, gemini-3.1-pro-preview, is still
   # in preview). Needs GOOGLE_API_KEY.
   - id: google:gemini-3.6-flash

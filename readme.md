@@ -132,6 +132,18 @@ DeepSeek has no multimodal support. That does not affect this suite — every
 case is text-only — but it matters if Common later needs image input, so it
 stays on the record here.
 
+GLM-5.3 and Qwen3.8 are also available through Hugging Face's
+[inference router](https://huggingface.co/docs/inference-providers/index),
+using `HF_TOKEN`. The checkpoints are the same as on Together AI, so a
+difference between a Together row and its Hugging Face row reflects the
+hosting (quantization, serving stack), not the model:
+
+```sh
+export HF_TOKEN=...
+just eval-hf-glm       # GLM-5.3 on Hugging Face
+just eval-hf-qwen      # Qwen3.8 2.4T on Hugging Face
+```
+
 The exceptions to the fixed grader are the two local recipes (`eval-local`,
 `eval-generated`), where llama-server grades its own answers so no paid API is
 needed; treat those rubric scores as a smoke test. The exact-match checks on
@@ -141,10 +153,10 @@ classification labels and merge decisions never depend on the grader.
 
 `eval-matrix` runs the comparison providers — both Claude tiers, GPT-6 Luna,
 Gemini 3.6 Flash, and the Together AI open models — over the same cases in one
-run and writes `results/matrix.json`. `ANTHROPIC_API_KEY` is required because
-the grader needs it. The other keys are optional: the recipe skips any model
-whose key (`OPENAI_API_KEY`, `GOOGLE_API_KEY`, `TOGETHER_API_KEY`) is not set
-and says so:
+run and writes `results/matrix.json`. The grader's key is required
+(`ANTHROPIC_API_KEY` by default). Every provider key is optional: the recipe
+skips any model whose key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`GOOGLE_API_KEY`, `TOGETHER_API_KEY`, `HF_TOKEN`) is not set and says so:
 
 ```sh
 just eval-matrix
