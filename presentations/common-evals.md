@@ -83,16 +83,25 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Four providers, one at a time
+# Nine providers, one fixed grader
 
-| Recipe | Target and grader | Needs |
+| Recipe | Target | Needs |
 |---|---|---|
 | `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
+| `just eval-opus` | Claude Opus 5.5, the frontier anchor | `ANTHROPIC_API_KEY` |
 | `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY` |
+| `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY` |
 | `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
+| `just eval-glm`, `eval-glm-flash` | GLM-5.3, GLM-5.3 Flash | `TOGETHER_API_KEY` |
+| `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
+| `just eval-matrix` | every hosted model, side by side | all four keys |
 
-By default the model is its own grader! We need to iterate on this.
+One fixed judge, Claude Opus 5.5, grades every hosted recipe (so every hosted
+recipe also needs `ANTHROPIC_API_KEY`). Scores compare across models because
+the judge never changes. Only the local recipes grade themselves, as a free
+smoke test. `just scores` turns the matrix results into CSV rows for the
+rubric spreadsheet.
 
 # Running it against another model
 
@@ -108,8 +117,9 @@ Three places to change, none of them code.
    llama-server -m /path/to/model.gguf --alias local-model --port 8080
    ```
 
-3. **A different grader.** Pass `--grader` to score one model's answers with
-   another, for example the local model graded by Sonnet 5.5:
+3. **A different grader.** Every comparison recipe reads the `grader`
+   variable at the top of the justfile, so one edit re-judges everything.
+   To pick a judge for a single run, pass `--grader` directly:
 
    ```sh
    npx promptfoo@latest eval -c promptfooconfig.yaml \

@@ -3,8 +3,8 @@
 A configuration-first collection of evaluations for LLM tasks related to
 [Common](https://github.com/oneprojectorg/common/), One Project's platform for
 participatory decision-making. Evaluations are configured in Promptfoo YAML.
-The only code is two small TypeScript scripts that fetch real datasets and turn
-them into test cases.
+The only code is three small TypeScript scripts: two fetch real datasets and
+turn them into test cases, and one exports scores for the rubric spreadsheet.
 
 On Common, an organization runs a decision process: members submit proposals,
 reviewers shortlist them, members vote, and the winners are funded or adopted.
@@ -98,9 +98,7 @@ Any other GGUF works the same way if it is served on port `8080` with the alias
 llama-server -m /path/to/model.gguf --alias local-model --port 8080
 ```
 
-Then run the local eval. llama-server serves both the model under test and the
-rubric grader, so no paid grading API is needed. Treat its rubric scores as a
-smoke test, for the reason given at the end of this section:
+Then run the local eval:
 
 ```sh
 just eval-local
@@ -150,10 +148,11 @@ when comparing those rows against the rest.
 
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
-the local alias, llama-server URL, Together AI model, or Claude model. See
+the local alias, llama-server URL, or any hosted model id. See
 Promptfoo's [OpenAI-compatible provider docs](https://www.promptfoo.dev/docs/providers/openai/),
 [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togetherai/),
-and [Anthropic provider docs](https://www.promptfoo.dev/docs/providers/anthropic/)
+[Anthropic provider docs](https://www.promptfoo.dev/docs/providers/anthropic/),
+and [Google provider docs](https://www.promptfoo.dev/docs/providers/google/)
 for details.
 
 ## Hand-written cases
