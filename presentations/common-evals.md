@@ -117,12 +117,11 @@ Each change is configuration, not code.
    ```
 
 3. **A different grader.** Change the `grader` variable at the top of the
-   justfile to change the judge for every recipe. Pass `--grader` to
-   override it for one run:
+   justfile to change the judge for every recipe, or override it for one
+   run. For example, grade with GLM-5.3 on Hugging Face (`HF_TOKEN`):
 
    ```sh
-   npx promptfoo@latest eval -c promptfooconfig.yaml \
-     --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5
+   just grader=huggingface:chat:zai-org/GLM-5.3 eval-matrix
    ```
 
 Claude Sonnet 5.5 runs at high effort by default. For short classification

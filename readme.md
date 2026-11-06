@@ -40,6 +40,20 @@ recipes therefore need `ANTHROPIC_API_KEY` in addition to the tested
 provider's key. To grade more cheaply, change `grader` to
 `anthropic:messages:claude-sonnet-5-5`; the trade-off is a weaker judge.
 
+The variable can also be overridden for one run. For example, grade with
+GLM-5.3 served by Hugging Face's
+[inference router](https://www.promptfoo.dev/docs/providers/huggingface/),
+which needs `HF_TOKEN` instead of `ANTHROPIC_API_KEY`:
+
+```sh
+export HF_TOKEN=...
+just grader=huggingface:chat:zai-org/GLM-5.3 eval-matrix
+```
+
+An open-model judge removes the Anthropic dependency from grading. The
+trade-off mirrors the Claude caveat below: GLM then judges its own answers
+in the matrix, so prefer the exact-match columns for the GLM rows.
+
 The default recipe runs Claude Sonnet 5.5:
 
 ```sh
@@ -144,9 +158,10 @@ which aggregates `results/matrix.json` into one CSV row per model per task
 pasting into the Category Scores tab of the rubric spreadsheet. Raw results
 under `results/` are git-ignored; commit the exported CSV instead.
 
-One caveat on the scores: an Anthropic model judges the matrix, and the two
-Claude rows are judged by a sibling model, so prefer the exact-match columns
-when comparing those rows against the rest.
+One caveat on the scores: with the default grader an Anthropic model judges
+the matrix, and the two Claude rows are judged by a sibling model, so prefer
+the exact-match columns when comparing those rows against the rest. The same
+applies to the GLM rows when GLM is the grader.
 
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
