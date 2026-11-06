@@ -1,57 +1,79 @@
 # Run from the repository root. `just install` brings in the toolchain; see Brewfile.
 set shell := ["bash", "-cu"]
 
+# Load the provider API keys from .env.local (gitignored; copy .env.example).
+# A key already exported in the shell wins over the file, so per-run overrides
+# still work. The file is optional; recipes behave as before without it.
+set dotenv-filename := ".env.local"
+
 # One fixed grader for every comparison recipe, so a score difference means the
-# model differed, not the judge. Needs ANTHROPIC_API_KEY. Override it per run,
-# for example to grade with GLM-5.3 on Hugging Face (needs HF_TOKEN):
-#   just grader=huggingface:chat:zai-org/GLM-5.3 eval-matrix
-grader := "anthropic:messages:claude-opus-5-5"
+# model differed, not the judge. Needs TOGETHER_API_KEY. Override it per run,
+# for example to grade with Claude Opus 5.5 (needs ANTHROPIC_API_KEY):
+#   just grader=anthropic:messages:claude-opus-5-5 eval-matrix
+grader := "togetherai:zai-org/GLM-5.3"
 
 # Install the Homebrew toolchain (Brewfile) and the scripts' npm dependencies.
 install:
     brew bundle install --file=Brewfile
     npm install
 
-# Run Anthropic Claude Sonnet 5.5, the default. Set ANTHROPIC_API_KEY.
+# Run Anthropic Claude Sonnet 5.5, the default. Set ANTHROPIC_API_KEY and TOGETHER_API_KEY (grader).
 eval:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "{{grader}}"
 
-# Run Anthropic Claude Opus 5.5, also the grader. Set ANTHROPIC_API_KEY.
+# Run Anthropic Claude Opus 5.5. Set ANTHROPIC_API_KEY and TOGETHER_API_KEY (grader).
 eval-opus:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-opus-5-5" --grader "{{grader}}"
 
-# Run Google Gemini 3.6 Flash only. Set GOOGLE_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run Google Gemini 3.6 Flash only. Set GOOGLE_API_KEY and TOGETHER_API_KEY (grader).
 eval-gemini:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gemini-3.6-flash" --grader "{{grader}}"
 
-# Run OpenAI GPT-6 Luna only. Set OPENAI_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run OpenAI GPT-6 Luna only. Set OPENAI_API_KEY and TOGETHER_API_KEY (grader).
 eval-openai:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-6-luna" --grader "{{grader}}"
 
-# Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY; the grader uses it too.
 eval-together:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:Qwen" --grader "{{grader}}"
 
-# Run Together AI GLM-5.3 only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run Together AI GLM-5.3 only. Set TOGETHER_API_KEY; the grader uses it too.
+# GLM judges its own answers here, so compare its rubric scores with care.
 eval-glm:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:zai-org/GLM-5.3$" --grader "{{grader}}"
 
-# Run Together AI GLM-5.3 Flash only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run Together AI GLM-5.3 Flash only. Set TOGETHER_API_KEY; the grader is its larger sibling GLM-5.3.
 eval-glm-flash:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:.*GLM-5.3-Flash" --grader "{{grader}}"
 
-# Run Together AI DeepSeek V4 Pro only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
+# Run Together AI DeepSeek V4 Pro only. Set TOGETHER_API_KEY; the grader uses it too.
 eval-deepseek:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "DeepSeek-V4" --grader "{{grader}}"
+
+# Run Together AI Kimi K3 only. Set TOGETHER_API_KEY; the grader uses it too.
+eval-kimi:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Kimi-K3" --grader "{{grader}}"
 
 # Run and grade GLM-5.3 on Hugging Face's router. Set HF_TOKEN; no other key needed.
 # GLM judges its own answers here, so compare its rubric scores with care.
 eval-hf-glm:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*GLM-5.3" --grader "huggingface:chat:zai-org/GLM-5.3"
 
-# Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and ANTHROPIC_API_KEY (grader).
+# Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
 eval-hf-qwen:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Qwen" --grader "{{grader}}"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Qwen3.8-2.4T" --grader "{{grader}}"
+
+# Run Qwen3.8 27B on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
+eval-hf-qwen-27b:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Qwen3.8-27B" --grader "{{grader}}"
+
+# Run Qwen3.6 35B A3B on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
+eval-hf-qwen36:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Qwen3.6-35B" --grader "{{grader}}"
+
+# Run Apertus v1.5 70B on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
+eval-hf-apertus:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*Apertus" --grader "{{grader}}"
 
 # Run the comparison providers whose API keys are set and write results/matrix.json. The grader's key is required; ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, TOGETHER_API_KEY, and HF_TOKEN each add their models.
 eval-matrix:
@@ -80,6 +102,7 @@ eval-matrix:
         exit 1
     fi
     filter=$(IFS='|'; echo "${providers[*]}")
+    echo "running the providers matching: $filter"
     mkdir -p results
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "$filter" --grader "{{grader}}" --output results/matrix.json
 

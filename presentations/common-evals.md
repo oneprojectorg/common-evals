@@ -82,26 +82,30 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Eleven providers, one fixed grader
+# Fifteen providers, one fixed grader
 
 | Recipe | Target | Needs |
 |---|---|---|
-| `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
-| `just eval-opus` | Claude Opus 5.5, also the grader | `ANTHROPIC_API_KEY` |
-| `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY` |
-| `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY` |
+| `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-opus` | Claude Opus 5.5 | `ANTHROPIC_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY`, `TOGETHER_API_KEY` |
 | `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
-| `just eval-glm`, `eval-glm-flash` | GLM-5.3, GLM-5.3 Flash | `TOGETHER_API_KEY` |
+| `just eval-glm`, `eval-glm-flash` | GLM-5.3 (the grader), GLM-5.3 Flash | `TOGETHER_API_KEY` |
 | `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
-| `just eval-hf-glm`, `eval-hf-qwen` | GLM-5.3, Qwen3.8 on Hugging Face | `HF_TOKEN` |
+| `just eval-kimi` | Kimi K3 | `TOGETHER_API_KEY` |
+| `just eval-hf-glm`, `eval-hf-qwen` | GLM-5.3, Qwen3.8 on Hugging Face | `HF_TOKEN` (+ `TOGETHER_API_KEY` for Qwen) |
+| `just eval-hf-qwen-27b`, `eval-hf-qwen36` | Qwen3.8 27B, Qwen3.6 35B A3B on Hugging Face | `HF_TOKEN`, `TOGETHER_API_KEY` |
+| `just eval-hf-apertus` | Apertus v1.5 70B on Hugging Face | `HF_TOKEN`, `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
-| `just eval-matrix` | all hosted models with a key set, in one run | `ANTHROPIC_API_KEY`; other keys optional |
+| `just eval-matrix` | all hosted models with a key set, in one run | `TOGETHER_API_KEY`; other keys optional |
 
-Claude Opus 5.5 grades every hosted recipe, so each hosted recipe also needs
-`ANTHROPIC_API_KEY`. The fixed judge makes scores comparable across models.
-The local recipes grade themselves; treat their rubric scores as a smoke
-test. `just scores` turns the matrix results into CSV rows for the rubric
-spreadsheet.
+GLM-5.3 on Together AI grades every hosted recipe, so each hosted recipe also
+needs `TOGETHER_API_KEY`. The fixed judge makes scores comparable across
+models; GLM judges its own answers in the GLM rows, so prefer the exact-match
+columns there. The local recipes grade themselves; treat their rubric scores
+as a smoke test. `just scores` turns the matrix results into CSV rows for the
+rubric spreadsheet.
 
 # Running it against another model
 
@@ -119,10 +123,10 @@ Each change is configuration, not code.
 
 3. **A different grader.** Change the `grader` variable at the top of the
    justfile to change the judge for every recipe, or override it for one
-   run. For example, grade with GLM-5.3 on Hugging Face (`HF_TOKEN`):
+   run. For example, grade with Claude Opus 5.5 (`ANTHROPIC_API_KEY`):
 
    ```sh
-   just grader=huggingface:chat:zai-org/GLM-5.3 eval-matrix
+   just grader=anthropic:messages:claude-opus-5-5 eval-matrix
    ```
 
 Claude Sonnet 5.5 runs at high effort by default. For short classification

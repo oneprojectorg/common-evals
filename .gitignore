@@ -5,6 +5,8 @@ tests/generated/
 promptfooconfig.generated.yaml
 # Raw eval output from `just eval-matrix`; commit the exported CSV, not this.
 results/
+# Provider API keys; copy .env.example and fill in. Loaded by every just recipe.
+.env.local
 # Dependencies for scripts/; restore with `npm install`.
 node_modules/
 # Local model binaries downloaded next to the repo.
