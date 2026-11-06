@@ -44,9 +44,10 @@ eval-glm-flash:
 eval-deepseek:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "DeepSeek-V4" --grader "{{grader}}"
 
-# Run GLM-5.3 on Hugging Face's router only. Set HF_TOKEN and ANTHROPIC_API_KEY (grader).
+# Run and grade GLM-5.3 on Hugging Face's router. Set HF_TOKEN; no other key needed.
+# GLM judges its own answers here, so compare its rubric scores with care.
 eval-hf-glm:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*GLM-5.3" --grader "{{grader}}"
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "huggingface:.*GLM-5.3" --grader "huggingface:chat:zai-org/GLM-5.3"
 
 # Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and ANTHROPIC_API_KEY (grader).
 eval-hf-qwen:

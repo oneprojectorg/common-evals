@@ -140,9 +140,15 @@ hosting (quantization, serving stack), not the model:
 
 ```sh
 export HF_TOKEN=...
-just eval-hf-glm       # GLM-5.3 on Hugging Face
+just eval-hf-glm       # GLM-5.3 on Hugging Face, graded by GLM-5.3 itself
 just eval-hf-qwen      # Qwen3.8 2.4T on Hugging Face
 ```
+
+`eval-hf-glm` grades with GLM-5.3 rather than the fixed grader, so it runs on
+`HF_TOKEN` alone with no Anthropic key. The cost of that convenience is
+self-grading: its rubric scores reflect GLM's agreement with its own answers
+and are not comparable with the other recipes' scores. Use the matrix for
+comparable rows.
 
 The exceptions to the fixed grader are the two local recipes (`eval-local`,
 `eval-generated`), where llama-server grades its own answers so no paid API is
