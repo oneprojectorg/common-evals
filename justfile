@@ -2,7 +2,7 @@
 set shell := ["bash", "-cu"]
 
 # One fixed grader for every comparison recipe, so a score difference means the
-# model differed, not the judge. Opus is the frontier anchor; needs ANTHROPIC_API_KEY.
+# model differed, not the judge. Needs ANTHROPIC_API_KEY.
 grader := "anthropic:messages:claude-opus-5-5"
 
 # Install the Homebrew toolchain (Brewfile) and the scripts' npm dependencies.
@@ -14,7 +14,7 @@ install:
 eval:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5" --grader "{{grader}}"
 
-# Run Anthropic Claude Opus 5.5, the frontier anchor. Set ANTHROPIC_API_KEY.
+# Run Anthropic Claude Opus 5.5, also the grader. Set ANTHROPIC_API_KEY.
 eval-opus:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-opus-5-5" --grader "{{grader}}"
 
@@ -25,6 +25,10 @@ eval-gemini:
 # Run OpenAI GPT-6 Luna only. Set OPENAI_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-openai:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-6-luna" --grader "{{grader}}"
+
+# Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
+eval-together:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Qwen3.8" --grader "{{grader}}"
 
 # Run Together AI GLM-5.3 only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-glm:
@@ -55,10 +59,6 @@ serve-apertus:
 # Run and grade with llama-server only. Start it on port 8080 first, for example with `just serve-apertus`.
 eval-local:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
-
-# Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY and ANTHROPIC_API_KEY (grader).
-eval-together:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "Qwen3.8" --grader "{{grader}}"
 
 # Open the latest evaluation results in Promptfoo's web viewer.
 view:
