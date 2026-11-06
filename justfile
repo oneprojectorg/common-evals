@@ -42,10 +42,20 @@ eval-glm-flash:
 eval-deepseek:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "DeepSeek-V4" --grader "{{grader}}"
 
-# Run every comparison provider in one side-by-side eval and write results/matrix.json. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, and TOGETHER_API_KEY.
+# Run the comparison providers whose API keys are set and write results/matrix.json. ANTHROPIC_API_KEY is required (grader); OPENAI_API_KEY, GOOGLE_API_KEY, and TOGETHER_API_KEY each add their models.
 eval-matrix:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+        echo "ANTHROPIC_API_KEY is not set; the grader needs it" >&2
+        exit 1
+    fi
+    providers="claude-sonnet-5-5|claude-opus-5-5"
+    [ -n "${OPENAI_API_KEY:-}" ] && providers+="|gpt-6-luna" || echo "OPENAI_API_KEY not set; skipping GPT-6 Luna"
+    [ -n "${GOOGLE_API_KEY:-}" ] && providers+="|gemini-3.6-flash" || echo "GOOGLE_API_KEY not set; skipping Gemini 3.6 Flash"
+    [ -n "${TOGETHER_API_KEY:-}" ] && providers+="|GLM-5.3|DeepSeek-V4|Qwen3.8" || echo "TOGETHER_API_KEY not set; skipping the Together AI models"
     mkdir -p results
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5|claude-opus-5-5|gpt-6-luna|gemini-3.6-flash|GLM-5.3|DeepSeek-V4|Qwen3.8" --grader "{{grader}}" --output results/matrix.json
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "$providers" --grader "{{grader}}" --output results/matrix.json
 
 # Turn results/matrix.json into model x task CSV rows for the rubric spreadsheet.
 scores:

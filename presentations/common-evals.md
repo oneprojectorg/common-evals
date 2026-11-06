@@ -94,7 +94,7 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 | `just eval-glm`, `eval-glm-flash` | GLM-5.3, GLM-5.3 Flash | `TOGETHER_API_KEY` |
 | `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
-| `just eval-matrix` | all hosted models in one run | all four keys |
+| `just eval-matrix` | all hosted models with a key set, in one run | `ANTHROPIC_API_KEY`; other keys optional |
 
 Claude Opus 5.5 grades every hosted recipe, so each hosted recipe also needs
 `ANTHROPIC_API_KEY`. The fixed judge makes scores comparable across models.

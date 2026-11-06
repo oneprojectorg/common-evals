@@ -125,10 +125,12 @@ classification labels and merge decisions never depend on the grader.
 
 ## Compare models
 
-`eval-matrix` runs every comparison provider — both Claude tiers, GPT-6 Luna,
+`eval-matrix` runs the comparison providers — both Claude tiers, GPT-6 Luna,
 Gemini 3.6 Flash, and the Together AI open models — over the same cases in one
-run and writes `results/matrix.json`. It needs `ANTHROPIC_API_KEY`,
-`OPENAI_API_KEY`, `GOOGLE_API_KEY`, and `TOGETHER_API_KEY`:
+run and writes `results/matrix.json`. `ANTHROPIC_API_KEY` is required because
+the grader needs it. The other keys are optional: the recipe skips any model
+whose key (`OPENAI_API_KEY`, `GOOGLE_API_KEY`, `TOGETHER_API_KEY`) is not set
+and says so:
 
 ```sh
 just eval-matrix
