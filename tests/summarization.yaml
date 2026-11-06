@@ -21,9 +21,101 @@
 
       Location: Linden Park, Columbus, OH
   assert:
+    - type: javascript
+      value: output.trim().split(/\s+/).length <= 90
     - type: llm-rubric
       value: >-
         Summarizes rebuilding the garden beds and adding a water line, says
         who benefits (the households or gardeners who use the garden), and
         states the $18,500 budget. Does not claim the proposal is funded,
         shortlisted, or supported by the city.
+
+- description: Summarize the crosswalk proposal without inventing a budget
+  vars:
+    task: >-
+      Summarize the proposal in 2-3 sentences for the proposal card. Include
+      what it would change, who benefits, and the requested budget.
+    input: >-
+      Decision: Linden Neighborhood Improvement Fund 2026 (total budget $250,000)
+
+      Title: Raised crosswalk at Maplewood Elementary
+
+      Summary: Build a raised crosswalk with flashing beacons on Dunmore
+      Avenue in front of Maplewood Elementary, where drivers routinely ignore
+      the painted crossing. Parents from the school's safety committee
+      collected 230 signatures supporting the change.
+
+      Location: Dunmore Avenue at Maplewood Elementary, Columbus, OH
+  assert:
+    - type: javascript
+      value: output.trim().split(/\s+/).length <= 90
+    - type: llm-rubric
+      value: >-
+        Summarizes the raised crosswalk with beacons at Maplewood Elementary
+        and who benefits (students, families, or pedestrians). The proposal
+        states no budget, so the summary must not state a dollar amount; it
+        may note the budget is not specified. Does not claim the city or
+        school district has approved the change.
+
+- description: Condense the rambling composting proposal to its core change
+  vars:
+    task: >-
+      Summarize the proposal in 2-3 sentences for the proposal card. Include
+      what it would change, who benefits, and the requested budget.
+    input: >-
+      Decision: Linden Neighborhood Improvement Fund 2026 (total budget $250,000)
+
+      Title: Neighborhood composting, like Franklinton has
+
+      Summary: I have lived in Linden for twenty-two years and I remember
+      when the old yard waste program got cut back in 2014, which a lot of
+      us were upset about at the time. My neighbor and I both compost in our
+      backyards but most people on our street do not have the space or the
+      time, and the bins you can buy at the hardware store are expensive and
+      honestly not very good. Franklinton started a program two years ago
+      where a cart comes around once a week and picks up food scraps from
+      buckets, and my cousin who lives there says almost everyone on her
+      block uses it now. We should do the same thing here: a weekly food
+      scrap pickup pilot for 300 households in Linden, with the buckets
+      provided, run through the existing community center staff. The finished
+      compost could even go to the community garden at Linden Park, which
+      would be a nice full circle. I am asking for enough to cover one year.
+
+      Budget: $31,000 USD
+  assert:
+    - type: javascript
+      value: output.trim().split(/\s+/).length <= 90
+    - type: llm-rubric
+      value: >-
+        States the core change: a weekly food-scrap pickup pilot for about
+        300 Linden households with buckets provided, and the $31,000 budget
+        for one year. Leaves out the personal history, the 2014 program, and
+        the cousin in Franklinton. Stays within 2-3 sentences.
+
+- description: Summarize the mural proposal for its card
+  vars:
+    task: >-
+      Summarize the proposal in 2-3 sentences for the proposal card. Include
+      what it would change, who benefits, and the requested budget.
+    input: >-
+      Decision: Linden Neighborhood Improvement Fund 2026 (total budget $250,000)
+
+      Title: Murals on the Hudson Street underpass
+
+      Summary: Commission three local artists to paint murals on the Hudson
+      Street railroad underpass, which is currently covered in peeling paint
+      and tags. High-school art students would assist as paid apprentices,
+      and the designs would be chosen at a community meeting.
+
+      Budget: $22,000 USD
+
+      Location: Hudson Street underpass, Columbus, OH
+  assert:
+    - type: javascript
+      value: output.trim().split(/\s+/).length <= 90
+    - type: llm-rubric
+      value: >-
+        Summarizes commissioning local artists to paint the Hudson Street
+        underpass murals, mentions who benefits or takes part (residents,
+        artists, or the student apprentices), and states the $22,000 budget.
+        Does not invent details such as city approval or a completion date.

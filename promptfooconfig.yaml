@@ -21,8 +21,23 @@ prompts:
 providers:
   - id: anthropic:messages:claude-sonnet-5-5
     label: Anthropic Claude Sonnet 5.5
+  - id: anthropic:messages:claude-opus-5-5
+    label: Anthropic Claude Opus 5.5
   - id: openai:gpt-6-luna
     label: OpenAI GPT-6 Luna
+  # Open models on Together AI. DeepSeek is text-only (no multimodal), which
+  # is fine here: every case in this suite is text-only. Together also lists
+  # a dated id, deepseek-ai/DeepSeek-V4-Pro-0813, if the alias stops resolving.
+  - id: togetherai:zai-org/GLM-5.3
+    label: Together AI GLM-5.3
+  - id: togetherai:zai-org/GLM-5.3-Flash
+    label: Together AI GLM-5.3 Flash
+  - id: togetherai:deepseek-ai/DeepSeek-V4-Pro
+    label: Together AI DeepSeek V4 Pro
+  # Second frontier comparison, pending a decision (Gemini?). Uncomment and
+  # set GOOGLE_API_KEY to include it.
+  # - id: google:gemini-3-pro
+  #   label: Google Gemini 3 Pro
   - id: openai:chat:local-model
     label: llama-server local-model
     config:

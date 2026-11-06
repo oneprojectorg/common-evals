@@ -32,9 +32,15 @@ Promptfoo runs through `npx`, so `npm install` only covers the dataset scripts.
 
 ## Run evaluations
 
-Each `just` recipe selects one target provider and uses the same provider for
-rubric grading. The default is Anthropic's Claude Sonnet 5.5, which needs
-`ANTHROPIC_API_KEY`:
+Each `just` recipe selects one target provider. Every API-backed recipe grades
+with one fixed judge — Claude Opus 5.5, set by the `grader` variable at the top
+of the [`justfile`](justfile) — so rubric scores are comparable across models:
+a score difference means the model differed, not the judge. All of these
+recipes therefore need `ANTHROPIC_API_KEY` in addition to the tested
+provider's key. To grade more cheaply, change `grader` to
+`anthropic:messages:claude-sonnet-5-5`; the trade-off is a weaker judge.
+
+The default recipe runs Claude Sonnet 5.5:
 
 ```sh
 export ANTHROPIC_API_KEY=...
@@ -53,7 +59,13 @@ effort setting to the provider entry in `promptfooconfig.yaml`:
       effort: low
 ```
 
-Run and grade with OpenAI's GPT-6 Luna using `OPENAI_API_KEY`:
+Run Claude Opus 5.5, the frontier anchor for the model comparison:
+
+```sh
+just eval-opus
+```
+
+Run OpenAI's GPT-6 Luna using `OPENAI_API_KEY`:
 
 ```sh
 export OPENAI_API_KEY=...
@@ -86,23 +98,47 @@ smoke test, for the reason given at the end of this section:
 just eval-local
 ```
 
-Run and grade with Qwen3.8 2.4T on Together AI using `TOGETHER_API_KEY`:
+Run the open models on Together AI using `TOGETHER_API_KEY`:
 
 ```sh
 export TOGETHER_API_KEY=...
-just eval-together
+just eval-together     # Qwen3.8 2.4T
+just eval-glm          # GLM-5.3
+just eval-glm-flash    # GLM-5.3 Flash
+just eval-deepseek     # DeepSeek V4 Pro
 ```
 
-Every recipe grades with the model it tests, so a model's rubric scores
-reflect its agreement with its own answers. The exact-match checks on
-classification labels and merge decisions do not depend on the grader. For an
-independent rubric score, pass a different model to `--grader`, for example
-grading the local model's answers with Sonnet 5.5:
+DeepSeek has no multimodal support. That does not affect this suite — every
+case is text-only — but it matters if Common later needs image input, so it
+stays on the record here.
+
+The exceptions to the fixed grader are the two local recipes (`eval-local`,
+`eval-generated`), where llama-server grades its own answers so no paid API is
+needed; treat those rubric scores as a smoke test. The exact-match checks on
+classification labels and merge decisions never depend on the grader.
+
+## Compare models
+
+`eval-matrix` runs every comparison provider — both Claude tiers, GPT-6 Luna,
+and the Together AI open models — over the same cases in one run and writes
+`results/matrix.json`. It needs `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and
+`TOGETHER_API_KEY`:
 
 ```sh
-npx promptfoo@latest eval -c promptfooconfig.yaml \
-  --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5 -j 1 --no-cache
+just eval-matrix
+just view             # inspect the side-by-side results
+just scores           # model x task CSV rows for the rubric spreadsheet
 ```
+
+`just scores` runs [`scripts/export-scores.ts`](scripts/export-scores.ts),
+which aggregates `results/matrix.json` into one CSV row per model per task
+(cases, passes, pass rate, mean score) plus an `all` row per model, shaped for
+pasting into the Category Scores tab of the rubric spreadsheet. Raw results
+under `results/` are git-ignored; commit the exported CSV instead.
+
+One caveat on the scores: an Anthropic model judges the matrix, and the two
+Claude rows are judged by a sibling model, so prefer the exact-match columns
+when comparing those rows against the rest.
 
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
@@ -120,8 +156,10 @@ the prompt template lives in [`prompts/`](prompts/), each task's test cases
 live in their own YAML file under [`tests/`](tests/), and `defaultTest` holds
 the category list and grounding rubric shared by every case.
 
-- [`tests/summarization.yaml`](tests/summarization.yaml): one case that
-  writes the proposal-card summary.
+- [`tests/summarization.yaml`](tests/summarization.yaml): proposal-card
+  summaries, the primary use case — a straightforward card, a proposal with
+  no budget (the summary must not invent one), a rambling proposal to
+  condense, and an arts case. Every case also has a hard word-count check.
 - [`tests/classification.yaml`](tests/classification.yaml): one case per
   category of an example neighborhood improvement fund.
 - [`tests/merge.yaml`](tests/merge.yaml): merge outcomes for duplicate,
