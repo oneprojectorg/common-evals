@@ -51,14 +51,13 @@ just install          # brew bundle install, then npm install
 just validate         # check the configuration, no model calls
 ```
 
-Promptfoo itself is not installed. Every recipe runs it through `npx`, so
-there is nothing to upgrade by hand.
+Promptfoo is not installed. Every recipe runs it through `npx`.
 
 # Three tasks from the product
 
 On Common, members submit proposals, reviewers shortlist them, members vote,
-and admins merge duplicates. The cases model what the model is asked to do
-along that path.
+and admins merge duplicates. The cases cover the three LLM tasks on that
+path.
 
 | Task | Input | Checked by |
 |---|---|---|
@@ -88,38 +87,38 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 | Recipe | Target | Needs |
 |---|---|---|
 | `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
-| `just eval-opus` | Claude Opus 5.5, the frontier anchor | `ANTHROPIC_API_KEY` |
+| `just eval-opus` | Claude Opus 5.5, also the grader | `ANTHROPIC_API_KEY` |
 | `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY` |
 | `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY` |
 | `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
 | `just eval-glm`, `eval-glm-flash` | GLM-5.3, GLM-5.3 Flash | `TOGETHER_API_KEY` |
 | `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
-| `just eval-matrix` | every hosted model, side by side | all four keys |
+| `just eval-matrix` | all hosted models in one run | all four keys |
 
-One fixed judge, Claude Opus 5.5, grades every hosted recipe (so every hosted
-recipe also needs `ANTHROPIC_API_KEY`). Scores compare across models because
-the judge never changes. Only the local recipes grade themselves, as a free
-smoke test. `just scores` turns the matrix results into CSV rows for the
-rubric spreadsheet.
+Claude Opus 5.5 grades every hosted recipe, so each hosted recipe also needs
+`ANTHROPIC_API_KEY`. The fixed judge makes scores comparable across models.
+The local recipes grade themselves; treat their rubric scores as a smoke
+test. `just scores` turns the matrix results into CSV rows for the rubric
+spreadsheet.
 
 # Running it against another model
 
-Three places to change, none of them code.
+Each change is configuration, not code.
 
 1. **A different hosted model.** Add a provider entry in `promptfooconfig.yaml`
-   and filter to it. Promptfoo knows `openai:`, `anthropic:messages:`,
-   `togetherai:` and many more.
-2. **A different local model.** Serve any GGUF under the same alias and the
-   local recipes pick it up unchanged:
+   and filter to it. Promptfoo supports `openai:`, `anthropic:messages:`,
+   `togetherai:`, `google:`, and other prefixes.
+2. **A different local model.** Serve any GGUF under the alias `local-model`.
+   The local recipes use it unchanged:
 
    ```sh
    llama-server -m /path/to/model.gguf --alias local-model --port 8080
    ```
 
-3. **A different grader.** Every comparison recipe reads the `grader`
-   variable at the top of the justfile, so one edit re-judges everything.
-   To pick a judge for a single run, pass `--grader` directly:
+3. **A different grader.** Change the `grader` variable at the top of the
+   justfile to change the judge for every recipe. Pass `--grader` to
+   override it for one run:
 
    ```sh
    npx promptfoo@latest eval -c promptfooconfig.yaml \
