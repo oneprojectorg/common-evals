@@ -18,6 +18,10 @@ eval:
 eval-opus:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-opus-5-5" --grader "{{grader}}"
 
+# Run Google Gemini 3.6 Flash only. Set GOOGLE_API_KEY and ANTHROPIC_API_KEY (grader).
+eval-gemini:
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gemini-3.6-flash" --grader "{{grader}}"
+
 # Run OpenAI GPT-6 Luna only. Set OPENAI_API_KEY and ANTHROPIC_API_KEY (grader).
 eval-openai:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-6-luna" --grader "{{grader}}"
@@ -34,10 +38,10 @@ eval-glm-flash:
 eval-deepseek:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "DeepSeek-V4" --grader "{{grader}}"
 
-# Run every comparison provider in one side-by-side eval and write results/matrix.json. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, and TOGETHER_API_KEY.
+# Run every comparison provider in one side-by-side eval and write results/matrix.json. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, and TOGETHER_API_KEY.
 eval-matrix:
     mkdir -p results
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5|claude-opus-5-5|gpt-6-luna|GLM-5.3|DeepSeek-V4|Qwen3.8" --grader "{{grader}}" --output results/matrix.json
+    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "claude-sonnet-5-5|claude-opus-5-5|gpt-6-luna|gemini-3.6-flash|GLM-5.3|DeepSeek-V4|Qwen3.8" --grader "{{grader}}" --output results/matrix.json
 
 # Turn results/matrix.json into model x task CSV rows for the rubric spreadsheet.
 scores:

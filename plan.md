@@ -43,8 +43,9 @@ shared rubric spreadsheet.
 - **Anthropic Claude Sonnet 5.5** — already configured as the default dev
   provider; include it in the comparison matrix too, so the rubric shows both
   Anthropic tiers next to the open models.
-- **Gemini** — on hold until Scott answers the "wdyt" question. Leave a
-  commented-out provider entry as a placeholder.
+- **Gemini** — added as `google:gemini-3.6-flash`, Google's current GA model
+  (the Pro tier is still preview-only as of 2026-11). GPT-6 Luna stays in the
+  matrix too, so both candidate "second frontier" models are covered.
 
 ### 2. Use one fixed grader for all models
 
@@ -97,4 +98,5 @@ Step 6 is API spend and babysitting.
 1. ~~Grader choice~~ — resolved: Opus, switchable via the justfile `grader`
    variable.
 2. Exact column layout of the spreadsheet's Category Scores tab.
-3. Second frontier model: Gemini, or does GPT-6 Luna already fill that slot?
+3. ~~Second frontier model~~ — resolved: both Gemini 3.6 Flash and GPT-6 Luna
+   are in the matrix.

@@ -72,6 +72,14 @@ export OPENAI_API_KEY=...
 just eval-openai
 ```
 
+Run Google's Gemini 3.6 Flash using `GOOGLE_API_KEY` (the Pro tier is still
+preview-only; its id is noted in the config):
+
+```sh
+export GOOGLE_API_KEY=...
+just eval-gemini
+```
+
 Run a local model with
 [llama-server](https://github.com/ggml-org/llama.cpp/tree/master/examples/server).
 The recipe below serves [Apertus 1.5 8B](https://huggingface.co/swiss-ai/Apertus-v1.5-8B)
@@ -120,9 +128,9 @@ classification labels and merge decisions never depend on the grader.
 ## Compare models
 
 `eval-matrix` runs every comparison provider — both Claude tiers, GPT-6 Luna,
-and the Together AI open models — over the same cases in one run and writes
-`results/matrix.json`. It needs `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and
-`TOGETHER_API_KEY`:
+Gemini 3.6 Flash, and the Together AI open models — over the same cases in one
+run and writes `results/matrix.json`. It needs `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY`, `GOOGLE_API_KEY`, and `TOGETHER_API_KEY`:
 
 ```sh
 just eval-matrix

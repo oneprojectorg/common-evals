@@ -34,10 +34,10 @@ providers:
     label: Together AI GLM-5.3 Flash
   - id: togetherai:deepseek-ai/DeepSeek-V4-Pro
     label: Together AI DeepSeek V4 Pro
-  # Second frontier comparison, pending a decision (Gemini?). Uncomment and
-  # set GOOGLE_API_KEY to include it.
-  # - id: google:gemini-3-pro
-  #   label: Google Gemini 3 Pro
+  # Google's current GA model (the Pro tier, gemini-3.1-pro-preview, is still
+  # in preview). Needs GOOGLE_API_KEY.
+  - id: google:gemini-3.6-flash
+    label: Google Gemini 3.6 Flash
   - id: openai:chat:local-model
     label: llama-server local-model
     config:
