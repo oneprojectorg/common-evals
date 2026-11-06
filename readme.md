@@ -127,21 +127,25 @@ Run the open models on Together AI using `TOGETHER_API_KEY`:
 
 ```sh
 export TOGETHER_API_KEY=...
-just eval-together     # Qwen3.8 2.4T
 just eval-glm          # GLM-5.3
 just eval-glm-flash    # GLM-5.3 Flash
 just eval-deepseek     # DeepSeek V4 Pro
 just eval-kimi         # Kimi K3
 ```
 
+There is no Together AI Qwen row: Together's current Qwens are either
+dedicated-endpoint-only (the 2.4T flagship, the 3.5 line) or streaming-only
+(3.8 Flash, the 3.6 and 3.7 Plus tiers), and Promptfoo can call neither. The
+Qwen rows run through Hugging Face's router below.
+
 DeepSeek has no multimodal support. That does not affect this suite — every
 case is text-only — but it matters if Common later needs image input, so it
 stays on the record here.
 
-GLM-5.3 and Qwen3.8 are also available through Hugging Face's
+GLM-5.3 and the Qwens also run through Hugging Face's
 [inference router](https://huggingface.co/docs/inference-providers/index),
-using `HF_TOKEN`. The checkpoints are the same as on Together AI, so a
-difference between a Together row and its Hugging Face row reflects the
+using `HF_TOKEN`. GLM-5.3 is the same checkpoint as on Together AI, so a
+difference between its Together row and its Hugging Face row reflects the
 hosting (quantization, serving stack), not the model:
 
 ```sh
@@ -153,8 +157,6 @@ just eval-hf-qwen36    # Qwen3.6 35B A3B
 just eval-hf-apertus   # Apertus v1.5 70B
 ```
 
-The two smaller Qwens run only through the router: Together AI has no
-Qwen3.8-27B, and serves Qwen3.6-35B-A3B only on dedicated endpoints.
 
 Apertus v1.5 70B, the Swiss AI Initiative's open model, runs only through the
 router — Together AI does not host the Apertus family. It is the hosted

@@ -82,7 +82,7 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Fifteen providers, one fixed grader
+# Fourteen providers, one fixed grader
 
 | Recipe | Target | Needs |
 |---|---|---|
@@ -90,7 +90,6 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
 | `just eval-opus` | Claude Opus 5.5 | `ANTHROPIC_API_KEY`, `TOGETHER_API_KEY` |
 | `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY`, `TOGETHER_API_KEY` |
 | `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY`, `TOGETHER_API_KEY` |
-| `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
 | `just eval-glm`, `eval-glm-flash` | GLM-5.3 (the grader), GLM-5.3 Flash | `TOGETHER_API_KEY` |
 | `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
 | `just eval-kimi` | Kimi K3 | `TOGETHER_API_KEY` |

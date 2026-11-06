@@ -38,15 +38,15 @@ providers:
     label: Together AI DeepSeek V4 Pro
   - id: togetherai:moonshotai/Kimi-K3
     label: Together AI Kimi K3
-  # The same GLM and Qwen checkpoints served by Hugging Face's inference
-  # router (router.huggingface.co). Needs HF_TOKEN. Comparing a Together row
-  # with its Hugging Face row shows hosting differences, not model ones.
+  # Models served by Hugging Face's inference router (router.huggingface.co).
+  # Needs HF_TOKEN. GLM-5.3 is the same checkpoint as on Together AI, so a
+  # difference between its two rows shows the hosting, not the model.
   - id: huggingface:chat:zai-org/GLM-5.3
     label: Hugging Face GLM-5.3
+  # The Qwens are router-only: Together's current Qwens are dedicated-endpoint
+  #-only or streaming-only (unusable from Promptfoo), checked 2026-11.
   - id: huggingface:chat:Qwen/Qwen3.8-2.4T-A95B
     label: Hugging Face Qwen3.8 2.4T
-  # Smaller Qwens, router-only: Together has no Qwen3.8-27B at all and serves
-  # Qwen3.6-35B-A3B only on dedicated endpoints (checked 2026-11).
   - id: huggingface:chat:Qwen/Qwen3.8-27B
     label: Hugging Face Qwen3.8 27B
   - id: huggingface:chat:Qwen/Qwen3.6-35B-A3B
@@ -66,8 +66,6 @@ providers:
       apiBaseUrl: http://127.0.0.1:8080/v1
       apiKeyRequired: false
       useDefaultApiKey: false
-  - id: togetherai:Qwen/Qwen3.8-2.4T-A95B
-    label: Together AI Qwen3.8 2.4T
 
 defaultTest:
   vars:

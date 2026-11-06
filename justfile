@@ -33,10 +33,6 @@ eval-gemini:
 eval-openai:
     npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "gpt-6-luna" --grader "{{grader}}"
 
-# Run Together AI's Qwen3.8 2.4T only. Set TOGETHER_API_KEY; the grader uses it too.
-eval-together:
-    npx --yes promptfoo@latest eval -c promptfooconfig.yaml --filter-providers "togetherai:Qwen" --grader "{{grader}}"
-
 # Run Together AI GLM-5.3 only. Set TOGETHER_API_KEY; the grader uses it too.
 # GLM judges its own answers here, so compare its rubric scores with care.
 eval-glm:
