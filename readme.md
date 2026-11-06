@@ -188,6 +188,23 @@ just view             # inspect the side-by-side results
 just scores           # model x task CSV rows for the rubric spreadsheet
 ```
 
+The matrix runs the hand-written starter cases by default. `eval-all` runs
+everything — the starter cases plus the cases built from the catalog datasets
+(Cambridge PB, LA Fires, state employees) — rebuilding the generated cases
+first:
+
+```sh
+just eval-all
+```
+
+To run only the dataset cases, point the `config` variable at the generated
+config:
+
+```sh
+just build-cases
+just config=promptfooconfig.generated.yaml eval-matrix
+```
+
 `just scores` runs [`scripts/export-scores.ts`](scripts/export-scores.ts),
 which aggregates `results/matrix.json` into one CSV row per model per task
 (cases, passes, pass rate, mean score) plus an `all` row per model, shaped for
@@ -248,13 +265,15 @@ just download cambridge-pb         # fetch one or more ids into data/raw/<id>/
 just download-all                  # every public dataset, about 600 MB
 just build-cases                   # write tests/generated/*.yaml from the data
 just eval-generated                # run the generated cases on llama-server
+just config=promptfooconfig.generated.yaml eval-matrix   # on the hosted models
 ```
 
 `build-cases` samples a fixed number of rows per label with a seed, so the same
 seed reproduces the same cases, and it never copies an author name into a case.
 It also writes `promptfooconfig.generated.yaml`, a copy of the main config whose
 tests are the generated files, because Promptfoo merges the prompts of two
-configs passed together and runs every case twice. Downloads, generated cases,
+configs passed together and runs every case twice. The copy snapshots the main
+config's providers, so re-run `just build-cases` after changing them. Downloads, generated cases,
 and the generated config are ignored by git.
 
 The scripts under [`scripts/`](scripts/) are TypeScript and run directly on
