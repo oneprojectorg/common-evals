@@ -21,16 +21,65 @@ prompts:
 providers:
   - id: anthropic:messages:claude-sonnet-5-5
     label: Anthropic Claude Sonnet 5.5
+  - id: anthropic:messages:claude-opus-5-5
+    label: Anthropic Claude Opus 5.5
   - id: openai:gpt-6-luna
     label: OpenAI GPT-6 Luna
+  # Open models on Together AI. DeepSeek is text-only (no multimodal), which
+  # is fine here: every case in this suite is text-only. The plain
+  # deepseek-ai/DeepSeek-V4-Pro alias moved off Together's serverless tier
+  # (400 model_not_available, dedicated endpoint only, 2026-11); the dated
+  # snapshot below is the same model and still serverless.
+  # inputCost/outputCost are dollars per token (the provider's price per
+  # million divided by 1e6), from the providers' price lists of 2026-11.
+  # They make Promptfoo report a cost per result; `just costs` sums them.
+  - id: togetherai:zai-org/GLM-5.3
+    label: Together AI GLM-5.3
+    config: { inputCost: 1.4e-6, outputCost: 4.4e-6 }
+  - id: togetherai:zai-org/GLM-5.3-Flash
+    label: Together AI GLM-5.3 Flash
+    config: { inputCost: 1.5e-7, outputCost: 5.0e-7 }
+  - id: togetherai:deepseek-ai/DeepSeek-V4-Pro-0813
+    label: Together AI DeepSeek V4 Pro
+    config: { inputCost: 1.32e-6, outputCost: 3.96e-6 }
+  - id: togetherai:moonshotai/Kimi-K3
+    label: Together AI Kimi K3
+    config: { inputCost: 3.0e-6, outputCost: 1.5e-5 }
+  # Models served by Hugging Face's inference router (router.huggingface.co).
+  # Needs HF_TOKEN. GLM-5.3 is the same checkpoint as on Together AI, so a
+  # difference between its two rows shows the hosting, not the model.
+  # The router picks a backing provider per call; these costs are the
+  # cheapest live route's prices of 2026-11, so treat them as a floor.
+  - id: huggingface:chat:zai-org/GLM-5.3
+    label: Hugging Face GLM-5.3
+    config: { inputCost: 9.0e-7, outputCost: 4.0e-6 }
+  # The Qwens are router-only: Together's current Qwens are dedicated-endpoint
+  #-only or streaming-only (unusable from Promptfoo), checked 2026-11.
+  - id: huggingface:chat:Qwen/Qwen3.8-2.4T-A95B
+    label: Hugging Face Qwen3.8 2.4T
+    config: { inputCost: 2.0e-6, outputCost: 6.0e-6 }
+  - id: huggingface:chat:Qwen/Qwen3.8-27B
+    label: Hugging Face Qwen3.8 27B
+    config: { inputCost: 9.9e-7, outputCost: 1.49e-6 }
+  - id: huggingface:chat:Qwen/Qwen3.6-35B-A3B
+    label: Hugging Face Qwen3.6 35B A3B
+    config: { inputCost: 1.0e-7, outputCost: 9.5e-7 }
+  # Apertus, the Swiss AI Initiative's open model. Not on Together AI
+  # (checked 2026-11); the router serves it through publicai and
+  # featherless-ai. The local recipes run its 8B sibling via llama-server.
+  - id: huggingface:chat:swiss-ai/Apertus-v1.5-70B
+    label: Hugging Face Apertus v1.5 70B
+    config: { inputCost: 8.2e-7, outputCost: 2.92e-6 }
+  # Google's current GA model (the Pro tier, gemini-3.1-pro-preview, is still
+  # in preview). Needs GOOGLE_API_KEY.
+  - id: google:gemini-3.6-flash
+    label: Google Gemini 3.6 Flash
   - id: openai:chat:local-model
     label: llama-server local-model
     config:
       apiBaseUrl: http://127.0.0.1:8080/v1
       apiKeyRequired: false
       useDefaultApiKey: false
-  - id: togetherai:Qwen/Qwen3.8-2.4T-A95B
-    label: Together AI Qwen3.8 2.4T
 
 defaultTest:
   vars:

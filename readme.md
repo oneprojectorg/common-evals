@@ -3,8 +3,8 @@
 A configuration-first collection of evaluations for LLM tasks related to
 [Common](https://github.com/oneprojectorg/common/), One Project's platform for
 participatory decision-making. Evaluations are configured in Promptfoo YAML.
-The only code is two small TypeScript scripts that fetch real datasets and turn
-them into test cases.
+The only code is three small TypeScript scripts: two fetch real datasets and
+turn them into test cases, and one exports scores for the rubric spreadsheet.
 
 On Common, an organization runs a decision process: members submit proposals,
 reviewers shortlist them, members vote, and the winners are funded or adopted.
@@ -32,9 +32,34 @@ Promptfoo runs through `npx`, so `npm install` only covers the dataset scripts.
 
 ## Run evaluations
 
-Each `just` recipe selects one target provider and uses the same provider for
-rubric grading. The default is Anthropic's Claude Sonnet 5.5, which needs
-`ANTHROPIC_API_KEY`:
+API keys can live in `.env.local` at the repository root: copy
+[`.env.example`](.env.example) and fill in the keys you have. Every `just`
+recipe loads the file, so the `export` lines below are only needed when a key
+is not in it. A key exported in the shell wins over the file, which keeps
+one-off overrides working.
+
+Each `just` recipe selects one target provider. Every API-backed recipe grades
+with one fixed judge — GLM-5.3 on Together AI, set by the `grader` variable at
+the top of the [`justfile`](justfile) — so rubric scores are comparable across
+models: a score difference means the model differed, not the judge. All of
+these recipes therefore need `TOGETHER_API_KEY` in addition to the tested
+provider's key. An open-model judge keeps grading independent of the lab APIs
+under comparison; the trade-off is that GLM judges its own answers in the GLM
+rows, so prefer the exact-match columns there.
+
+The variable can also be overridden for one run. For example, grade with
+Claude Opus 5.5, which needs `ANTHROPIC_API_KEY` instead of
+`TOGETHER_API_KEY`:
+
+```sh
+just grader=anthropic:messages:claude-opus-5-5 eval-matrix
+```
+
+A Claude judge mirrors the GLM caveat: the two Claude rows are then judged by
+the grader itself or a sibling model, so prefer the exact-match columns for
+those rows instead.
+
+The default recipe runs Claude Sonnet 5.5:
 
 ```sh
 export ANTHROPIC_API_KEY=...
@@ -53,11 +78,25 @@ effort setting to the provider entry in `promptfooconfig.yaml`:
       effort: low
 ```
 
-Run and grade with OpenAI's GPT-6 Luna using `OPENAI_API_KEY`:
+Run Claude Opus 5.5, the frontier anchor for the model comparison:
+
+```sh
+just eval-opus
+```
+
+Run OpenAI's GPT-6 Luna using `OPENAI_API_KEY`:
 
 ```sh
 export OPENAI_API_KEY=...
 just eval-openai
+```
+
+Run Google's Gemini 3.6 Flash using `GOOGLE_API_KEY` (the Pro tier is still
+preview-only; its id is noted in the config):
+
+```sh
+export GOOGLE_API_KEY=...
+just eval-gemini
 ```
 
 Run a local model with
@@ -78,38 +117,151 @@ Any other GGUF works the same way if it is served on port `8080` with the alias
 llama-server -m /path/to/model.gguf --alias local-model --port 8080
 ```
 
-Then run the local eval. llama-server serves both the model under test and the
-rubric grader, so no paid grading API is needed. Treat its rubric scores as a
-smoke test, for the reason given at the end of this section:
+Then run the local eval:
 
 ```sh
 just eval-local
 ```
 
-Run and grade with Qwen3.8 2.4T on Together AI using `TOGETHER_API_KEY`:
+Run the open models on Together AI using `TOGETHER_API_KEY`:
 
 ```sh
 export TOGETHER_API_KEY=...
-just eval-together
+just eval-glm          # GLM-5.3
+just eval-glm-flash    # GLM-5.3 Flash
+just eval-deepseek     # DeepSeek V4 Pro
+just eval-kimi         # Kimi K3
 ```
 
-Every recipe grades with the model it tests, so a model's rubric scores
-reflect its agreement with its own answers. The exact-match checks on
-classification labels and merge decisions do not depend on the grader. For an
-independent rubric score, pass a different model to `--grader`, for example
-grading the local model's answers with Sonnet 5.5:
+There is no Together AI Qwen row: Together's current Qwens are either
+dedicated-endpoint-only (the 2.4T flagship, the 3.5 line) or streaming-only
+(3.8 Flash, the 3.6 and 3.7 Plus tiers), and Promptfoo can call neither. The
+Qwen rows run through Hugging Face's router below.
+
+DeepSeek has no multimodal support. That does not affect this suite — every
+case is text-only — but it matters if Common later needs image input, so it
+stays on the record here.
+
+GLM-5.3 and the Qwens also run through Hugging Face's
+[inference router](https://huggingface.co/docs/inference-providers/index),
+using `HF_TOKEN`. GLM-5.3 is the same checkpoint as on Together AI, so a
+difference between its Together row and its Hugging Face row reflects the
+hosting (quantization, serving stack), not the model:
 
 ```sh
-npx promptfoo@latest eval -c promptfooconfig.yaml \
-  --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5 -j 1 --no-cache
+export HF_TOKEN=...
+just eval-hf-glm       # GLM-5.3 on Hugging Face, graded by GLM-5.3 itself
+just eval-hf-qwen      # Qwen3.8 2.4T on Hugging Face
+just eval-hf-qwen-27b  # Qwen3.8 27B
+just eval-hf-qwen36    # Qwen3.6 35B A3B
+just eval-hf-apertus   # Apertus v1.5 70B
 ```
+
+
+Apertus v1.5 70B, the Swiss AI Initiative's open model, runs only through the
+router — Together AI does not host the Apertus family. It is the hosted
+sibling of the 8B model the local recipes serve with llama-server.
+
+`eval-hf-glm` grades with the Hugging Face-served GLM-5.3 rather than the
+fixed grader, so it runs on `HF_TOKEN` alone with no Together AI key. The cost
+of that convenience is self-grading: its rubric scores reflect GLM's agreement
+with its own answers and are not comparable with the other recipes' scores.
+Use the matrix for comparable rows.
+
+The exceptions to the fixed grader are the two local recipes (`eval-local`,
+`eval-generated`), where llama-server grades its own answers so no paid API is
+needed; treat those rubric scores as a smoke test. The exact-match checks on
+classification labels and merge decisions never depend on the grader.
+
+## Compare models
+
+`eval-matrix` runs the comparison providers — both Claude tiers, GPT-6 Luna,
+Gemini 3.6 Flash, and the Together AI open models — over the same cases in one
+run and writes `results/matrix.json`. The grader's key is required
+(`TOGETHER_API_KEY` by default). Every provider key is optional: the recipe
+skips any model whose key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`GOOGLE_API_KEY`, `TOGETHER_API_KEY`, `HF_TOKEN`) is not set and says so:
+
+```sh
+just eval-matrix
+just view             # inspect the side-by-side results
+just scores           # model x task CSV rows for the rubric spreadsheet
+```
+
+The matrix runs the hand-written starter cases by default. `eval-all` runs
+everything — the starter cases plus the cases built from the catalog datasets
+(Cambridge PB, LA Fires, state employees) — rebuilding the generated cases
+first:
+
+```sh
+just eval-all
+```
+
+To run only the dataset cases, point the `config` variable at the generated
+config:
+
+```sh
+just build-cases
+just config=promptfooconfig.generated.yaml eval-matrix
+```
+
+`just scores` runs [`scripts/export-scores.ts`](scripts/export-scores.ts),
+which aggregates `results/matrix.json` into one CSV row per model per task
+(cases, passes, pass rate, mean score) plus an `all` row per model, shaped for
+pasting into the Category Scores tab of the rubric spreadsheet. Raw results
+under `results/` are git-ignored; commit the exported CSV instead.
+
+One caveat on the scores: with the default grader GLM-5.3 judges the matrix,
+so the GLM rows are judged by themselves or a sibling model; prefer the
+exact-match columns when comparing those rows against the rest. The same
+applies to the Claude rows when a Claude model is the grader.
+
+## What a run costs
+
+A run makes one model call per provider per case, plus one grader call per
+`llm-rubric` assertion per result. Our cases carry two rubric assertions (the
+shared `defaultTest` rubric and the per-case one), so each case costs one
+target call and two grader calls per model. Promptfoo prints the token totals,
+split into provider and grading, at the end of every run. Promptfoo also
+caches responses, so a re-run only pays for what changed.
+
+Every hosted provider entry in `promptfooconfig.yaml` carries its price as
+`inputCost` and `outputCost` (dollars per token), so Promptfoo records a
+dollar cost on each result. Promptfoo never prints the total, so `eval-matrix`
+ends by running [`scripts/report-costs.ts`](scripts/report-costs.ts), which
+prints provider cost, grading cost, and the sum, per model and in total. Run
+it again any time with `just costs`. Update the prices in the config when the
+providers change theirs.
+
+Measured on the generated cases (November 2026): a target call averages about
+320 prompt and 260 completion tokens; a grader call about 460 and 350.
+Reasoning models (Kimi, DeepSeek) bill their thinking as completion tokens.
+Model prices per million tokens (in/out) ranged from $0.15/$0.50 (GLM-5.3
+Flash) to $3/$15 (Kimi K3). At those prices, one case across the nine
+Together and Hugging Face models costs about $0.014 in target calls and
+$0.039 in grading: roughly five cents per case. That puts `just eval-all`
+(61 cases) near $3.20, the dataset cases alone near $2.60, the starter cases
+alone near $0.60, and a single-model recipe such as `just eval-glm` near
+$0.07.
+
+Grading is about three quarters of the bill, because every result gets two
+GLM-5.3 rubric calls. To cut it by about 90%, grade with the Flash tier:
+
+```sh
+just grader=togetherai:zai-org/GLM-5.3-Flash eval-all
+```
+
+The trade-off is a weaker judge; the exact-match columns are unaffected.
+Summarization and merge cases run longer than classification, and prices
+drift, so treat these numbers as the shape of the bill rather than the bill.
 
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
-the local alias, llama-server URL, Together AI model, or Claude model. See
+the local alias, llama-server URL, or any hosted model id. See
 Promptfoo's [OpenAI-compatible provider docs](https://www.promptfoo.dev/docs/providers/openai/),
 [Together AI provider docs](https://www.promptfoo.dev/docs/providers/togetherai/),
-and [Anthropic provider docs](https://www.promptfoo.dev/docs/providers/anthropic/)
+[Anthropic provider docs](https://www.promptfoo.dev/docs/providers/anthropic/),
+and [Google provider docs](https://www.promptfoo.dev/docs/providers/google/)
 for details.
 
 ## Hand-written cases
@@ -120,8 +272,10 @@ the prompt template lives in [`prompts/`](prompts/), each task's test cases
 live in their own YAML file under [`tests/`](tests/), and `defaultTest` holds
 the category list and grounding rubric shared by every case.
 
-- [`tests/summarization.yaml`](tests/summarization.yaml): one case that
-  writes the proposal-card summary.
+- [`tests/summarization.yaml`](tests/summarization.yaml): proposal-card
+  summaries, the primary use case — a straightforward card, a proposal with
+  no budget (the summary must not invent one), a rambling proposal to
+  condense, and an arts case. Every case also has a hard word-count check.
 - [`tests/classification.yaml`](tests/classification.yaml): one case per
   category of an example neighborhood improvement fund.
 - [`tests/merge.yaml`](tests/merge.yaml): merge outcomes for duplicate,
@@ -150,13 +304,15 @@ just download cambridge-pb         # fetch one or more ids into data/raw/<id>/
 just download-all                  # every public dataset, about 600 MB
 just build-cases                   # write tests/generated/*.yaml from the data
 just eval-generated                # run the generated cases on llama-server
+just config=promptfooconfig.generated.yaml eval-matrix   # on the hosted models
 ```
 
 `build-cases` samples a fixed number of rows per label with a seed, so the same
 seed reproduces the same cases, and it never copies an author name into a case.
 It also writes `promptfooconfig.generated.yaml`, a copy of the main config whose
 tests are the generated files, because Promptfoo merges the prompts of two
-configs passed together and runs every case twice. Downloads, generated cases,
+configs passed together and runs every case twice. The copy snapshots the main
+config's providers, so re-run `just build-cases` after changing them. Downloads, generated cases,
 and the generated config are ignored by git.
 
 The scripts under [`scripts/`](scripts/) are TypeScript and run directly on
