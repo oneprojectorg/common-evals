@@ -216,6 +216,45 @@ so the GLM rows are judged by themselves or a sibling model; prefer the
 exact-match columns when comparing those rows against the rest. The same
 applies to the Claude rows when a Claude model is the grader.
 
+## What a run costs
+
+A run makes one model call per provider per case, plus one grader call per
+`llm-rubric` assertion per result. Our cases carry two rubric assertions (the
+shared `defaultTest` rubric and the per-case one), so each case costs one
+target call and two grader calls per model. Promptfoo prints the token totals,
+split into provider and grading, at the end of every run. Promptfoo also
+caches responses, so a re-run only pays for what changed.
+
+Every hosted provider entry in `promptfooconfig.yaml` carries its price as
+`inputCost` and `outputCost` (dollars per token), so Promptfoo records a
+dollar cost on each result. Promptfoo never prints the total, so `eval-matrix`
+ends by running [`scripts/report-costs.ts`](scripts/report-costs.ts), which
+prints provider cost, grading cost, and the sum, per model and in total. Run
+it again any time with `just costs`. Update the prices in the config when the
+providers change theirs.
+
+Measured on the generated cases (November 2026): a target call averages about
+320 prompt and 260 completion tokens; a grader call about 460 and 350.
+Reasoning models (Kimi, DeepSeek) bill their thinking as completion tokens.
+Model prices per million tokens (in/out) ranged from $0.15/$0.50 (GLM-5.3
+Flash) to $3/$15 (Kimi K3). At those prices, one case across the nine
+Together and Hugging Face models costs about $0.014 in target calls and
+$0.039 in grading: roughly five cents per case. That puts `just eval-all`
+(61 cases) near $3.20, the dataset cases alone near $2.60, the starter cases
+alone near $0.60, and a single-model recipe such as `just eval-glm` near
+$0.07.
+
+Grading is about three quarters of the bill, because every result gets two
+GLM-5.3 rubric calls. To cut it by about 90%, grade with the Flash tier:
+
+```sh
+just grader=togetherai:zai-org/GLM-5.3-Flash eval-all
+```
+
+The trade-off is a weaker judge; the exact-match columns are unaffected.
+Summarization and merge cases run longer than classification, and prices
+drift, so treat these numbers as the shape of the bill rather than the bill.
+
 Provider endpoints and model IDs live in
 [`promptfooconfig.yaml`](promptfooconfig.yaml). Edit those entries to change
 the local alias, llama-server URL, or any hosted model id. See

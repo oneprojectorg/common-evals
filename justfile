@@ -107,6 +107,7 @@ eval-matrix:
     echo "running the providers matching: $filter"
     mkdir -p results
     npx --yes promptfoo@latest eval -c {{config}} --filter-providers "$filter" --grader "{{grader}}" --output results/matrix.json
+    node scripts/report-costs.ts --input results/matrix.json
 
 # Run every suite (the starter cases plus the generated catalog cases) across
 # every model whose API key is set, in one matrix run. Rebuilds the generated
@@ -117,6 +118,12 @@ eval-all: build-cases
 # Turn results/matrix.json into model x task CSV rows for the rubric spreadsheet.
 scores:
     node scripts/export-scores.ts --input results/matrix.json
+
+# Print the dollar cost of the last matrix run, per model and in total.
+# Pass the grader's prices when it is not GLM-5.3 on Together AI, for example
+# `just costs --grader-in 0.15 --grader-out 0.5` after a Flash-graded run.
+costs *args:
+    node scripts/report-costs.ts --input results/matrix.json {{args}}
 
 # Serve Apertus 1.5 8B (text-only GGUF) on port 8080 for eval-local. First run downloads ~8.5 GB.
 serve-apertus:
