@@ -158,13 +158,13 @@ download-all:
 build-cases *args:
     node scripts/build-cases.ts {{args}}
 
-# Run the generated cases against one model (run `just build-cases` first).
+# Run the generated cases against one model, rebuilding them first like eval-all.
 # The default, hf-glm-5.3, is GLM-5.3 on Hugging Face's router: it needs only
 # HF_TOKEN and grades its own answers, like eval-hf-glm, so compare its rubric
 # scores with care. The other names match the eval-* recipes above and grade
 # with the fixed grader; `local` needs llama-server on port 8080 (`just serve-apertus`)
 # and grades there too. Any other value is passed to --filter-providers as is.
-eval-generated model="hf-glm-5.3":
+eval-generated model="hf-glm-5.3": build-cases
     #!/usr/bin/env bash
     set -euo pipefail
     grader="{{grader}}"
