@@ -158,9 +158,35 @@ download-all:
 build-cases *args:
     node scripts/build-cases.ts {{args}}
 
-# Run the generated cases with llama-server, like eval-local. Run `just build-cases` and start the server first.
-eval-generated:
-    npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
+# Run the generated cases against one model (run `just build-cases` first).
+# The default, hf-glm-5.3, is GLM-5.3 on Hugging Face's router: it needs only
+# HF_TOKEN and grades its own answers, like eval-hf-glm, so compare its rubric
+# scores with care. The other names match the eval-* recipes above and grade
+# with the fixed grader; `local` needs llama-server on port 8080 (`just serve-apertus`)
+# and grades there too. Any other value is passed to --filter-providers as is.
+eval-generated model="hf-glm-5.3":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    grader="{{grader}}"
+    extra=()
+    case "{{model}}" in
+        hf-glm-5.3|hf-glm) filter="huggingface:.*GLM-5.3"; grader="huggingface:chat:zai-org/GLM-5.3" ;;
+        sonnet) filter="claude-sonnet-5-5" ;;
+        opus) filter="claude-opus-5-5" ;;
+        gemini) filter="gemini-3.6-flash" ;;
+        openai) filter="gpt-6-luna" ;;
+        glm) filter="togetherai:zai-org/GLM-5.3$" ;;
+        glm-flash) filter="togetherai:.*GLM-5.3-Flash" ;;
+        deepseek) filter="DeepSeek-V4" ;;
+        kimi) filter="Kimi-K3" ;;
+        hf-qwen) filter="huggingface:.*Qwen3.8-2.4T" ;;
+        hf-qwen-27b) filter="huggingface:.*Qwen3.8-27B" ;;
+        hf-qwen36) filter="huggingface:.*Qwen3.6-35B" ;;
+        hf-apertus) filter="huggingface:.*Apertus" ;;
+        local|local-model) filter="local-model"; grader="openai:chat:local-model"; extra+=(-j 1 --no-cache) ;;
+        *) filter="{{model}}" ;;
+    esac
+    npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "$filter" --grader "$grader" ${extra[@]+"${extra[@]}"}
 
 # templates/slidy/ holds the W3C Slidy script, stylesheet, and icons, so the build needs no network and no pandoc
 # HTTP support; --embed-resources inlines them. The theme is copied from oneproject-knowledge-base/templates/.
