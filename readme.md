@@ -307,6 +307,7 @@ just download-all                  # every public dataset, about 600 MB
 just build-cases                   # write tests/generated/*.yaml from the data
 just eval-generated                # run the generated cases on HF GLM-5.3 (HF_TOKEN)
 just eval-generated local          # the same cases on llama-server, self-graded
+just eval-generated sonnet deepseek kimi   # several models in one run, fixed grader
 just config=promptfooconfig.generated.yaml eval-matrix   # on the hosted models
 ```
 

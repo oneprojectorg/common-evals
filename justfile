@@ -158,34 +158,43 @@ download-all:
 build-cases *args:
     node scripts/build-cases.ts {{args}}
 
-# Run the generated cases against one model, rebuilding them first like eval-all.
-# The default, hf-glm-5.3, is GLM-5.3 on Hugging Face's router: it needs only
-# HF_TOKEN and grades its own answers, like eval-hf-glm, so compare its rubric
-# scores with care. The other names match the eval-* recipes above and grade
-# with the fixed grader; `local` needs llama-server on port 8080 (`just serve-apertus`)
-# and grades there too. Any other value is passed to --filter-providers as is.
-eval-generated model="hf-glm-5.3": build-cases
+# Run the generated cases against one or more models in one run, rebuilding the
+# cases first like eval-all. The default, hf-glm-5.3, is GLM-5.3 on Hugging
+# Face's router: it needs only HF_TOKEN and, when it runs alone, grades its own
+# answers like eval-hf-glm, so compare its rubric scores with care. The other
+# names match the eval-* recipes above; `local` needs llama-server on port 8080
+# (`just serve-apertus`). Any other value is passed to --filter-providers as is.
+# With more than one model the fixed grader scores every row, so the scores are
+# comparable, for example `just eval-generated hf-glm-5.3 sonnet deepseek`.
+eval-generated *models="hf-glm-5.3": build-cases
     #!/usr/bin/env bash
     set -euo pipefail
     grader="{{grader}}"
     extra=()
-    case "{{model}}" in
-        hf-glm-5.3|hf-glm) filter="huggingface:.*GLM-5.3"; grader="huggingface:chat:zai-org/GLM-5.3" ;;
-        sonnet) filter="claude-sonnet-5-5" ;;
-        opus) filter="claude-opus-5-5" ;;
-        gemini) filter="gemini-3.6-flash" ;;
-        openai) filter="gpt-6-luna" ;;
-        glm) filter="togetherai:zai-org/GLM-5.3$" ;;
-        glm-flash) filter="togetherai:.*GLM-5.3-Flash" ;;
-        deepseek) filter="DeepSeek-V4" ;;
-        kimi) filter="Kimi-K3" ;;
-        hf-qwen) filter="huggingface:.*Qwen3.8-2.4T" ;;
-        hf-qwen-27b) filter="huggingface:.*Qwen3.8-27B" ;;
-        hf-qwen36) filter="huggingface:.*Qwen3.6-35B" ;;
-        hf-apertus) filter="huggingface:.*Apertus" ;;
-        local|local-model) filter="local-model"; grader="openai:chat:local-model"; extra+=(-j 1 --no-cache) ;;
-        *) filter="{{model}}" ;;
-    esac
+    filters=()
+    for model in {{models}}; do
+        case "$model" in
+            hf-glm-5.3|hf-glm) filters+=("huggingface:.*GLM-5.3"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
+            sonnet) filters+=("claude-sonnet-5-5"); model_grader="{{grader}}" ;;
+            opus) filters+=("claude-opus-5-5"); model_grader="{{grader}}" ;;
+            gemini) filters+=("gemini-3.6-flash"); model_grader="{{grader}}" ;;
+            openai) filters+=("gpt-6-luna"); model_grader="{{grader}}" ;;
+            glm) filters+=("togetherai:zai-org/GLM-5.3$"); model_grader="{{grader}}" ;;
+            glm-flash) filters+=("togetherai:.*GLM-5.3-Flash"); model_grader="{{grader}}" ;;
+            deepseek) filters+=("DeepSeek-V4"); model_grader="{{grader}}" ;;
+            kimi) filters+=("Kimi-K3"); model_grader="{{grader}}" ;;
+            hf-qwen) filters+=("huggingface:.*Qwen3.8-2.4T"); model_grader="{{grader}}" ;;
+            hf-qwen-27b) filters+=("huggingface:.*Qwen3.8-27B"); model_grader="{{grader}}" ;;
+            hf-qwen36) filters+=("huggingface:.*Qwen3.6-35B"); model_grader="{{grader}}" ;;
+            hf-apertus) filters+=("huggingface:.*Apertus"); model_grader="{{grader}}" ;;
+            local|local-model) filters+=("local-model"); model_grader="openai:chat:local-model"; extra=(-j 1 --no-cache) ;;
+            *) filters+=("$model"); model_grader="{{grader}}" ;;
+        esac
+    done
+    if [ ${#filters[@]} -eq 1 ]; then
+        grader="$model_grader"
+    fi
+    filter=$(IFS='|'; echo "${filters[*]}")
     npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "$filter" --grader "$grader" ${extra[@]+"${extra[@]}"}
 
 # templates/slidy/ holds the W3C Slidy script, stylesheet, and icons, so the build needs no network and no pandoc
