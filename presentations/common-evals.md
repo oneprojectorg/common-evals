@@ -51,14 +51,13 @@ just install          # brew bundle install, then npm install
 just validate         # check the configuration, no model calls
 ```
 
-Promptfoo itself is not installed. Every recipe runs it through `npx`, so
-there is nothing to upgrade by hand.
+Promptfoo is not installed. Every recipe runs it through `npx`.
 
 # Three tasks from the product
 
 On Common, members submit proposals, reviewers shortlist them, members vote,
-and admins merge duplicates. The cases model what the model is asked to do
-along that path.
+and admins merge duplicates. The cases cover the three LLM tasks on that
+path.
 
 | Task | Input | Checked by |
 |---|---|---|
@@ -83,37 +82,50 @@ promptfooconfig.yaml               providers, shared rubric, the list of test fi
    LLM rubric for grounding and rationale
 4. `just view` opens the results in the browser
 
-# Four providers, one at a time
+# Fourteen providers, one fixed grader
 
-| Recipe | Target and grader | Needs |
+| Recipe | Target | Needs |
 |---|---|---|
-| `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY` |
-| `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY` |
-| `just eval-together` | Qwen3.8 2.4T on Together AI | `TOGETHER_API_KEY` |
+| `just eval` | Claude Sonnet 5.5, the default | `ANTHROPIC_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-opus` | Claude Opus 5.5 | `ANTHROPIC_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-openai` | GPT-6 Luna | `OPENAI_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-gemini` | Gemini 3.6 Flash | `GOOGLE_API_KEY`, `TOGETHER_API_KEY` |
+| `just eval-glm`, `eval-glm-flash` | GLM-5.3 (the grader), GLM-5.3 Flash | `TOGETHER_API_KEY` |
+| `just eval-deepseek` | DeepSeek V4 Pro | `TOGETHER_API_KEY` |
+| `just eval-kimi` | Kimi K3 | `TOGETHER_API_KEY` |
+| `just eval-hf-glm`, `eval-hf-qwen` | GLM-5.3, Qwen3.8 on Hugging Face | `HF_TOKEN` (+ `TOGETHER_API_KEY` for Qwen) |
+| `just eval-hf-qwen-27b`, `eval-hf-qwen36` | Qwen3.8 27B, Qwen3.6 35B A3B on Hugging Face | `HF_TOKEN`, `TOGETHER_API_KEY` |
+| `just eval-hf-apertus` | Apertus v1.5 70B on Hugging Face | `HF_TOKEN`, `TOGETHER_API_KEY` |
 | `just eval-local` | llama-server, alias `local-model` | `just serve-apertus` running, no key |
+| `just eval-matrix` | all hosted models with a key set, in one run | `TOGETHER_API_KEY`; other keys optional |
 
-By default the model is its own grader! We need to iterate on this.
+GLM-5.3 on Together AI grades every hosted recipe, so each hosted recipe also
+needs `TOGETHER_API_KEY`. The fixed judge makes scores comparable across
+models; GLM judges its own answers in the GLM rows, so prefer the exact-match
+columns there. The local recipes grade themselves; treat their rubric scores
+as a smoke test. `just scores` turns the matrix results into CSV rows for the
+rubric spreadsheet.
 
 # Running it against another model
 
-Three places to change, none of them code.
+Each change is configuration, not code.
 
 1. **A different hosted model.** Add a provider entry in `promptfooconfig.yaml`
-   and filter to it. Promptfoo knows `openai:`, `anthropic:messages:`,
-   `togetherai:` and many more.
-2. **A different local model.** Serve any GGUF under the same alias and the
-   local recipes pick it up unchanged:
+   and filter to it. Promptfoo supports `openai:`, `anthropic:messages:`,
+   `togetherai:`, `google:`, and other prefixes.
+2. **A different local model.** Serve any GGUF under the alias `local-model`.
+   The local recipes use it unchanged:
 
    ```sh
    llama-server -m /path/to/model.gguf --alias local-model --port 8080
    ```
 
-3. **A different grader.** Pass `--grader` to score one model's answers with
-   another, for example the local model graded by Sonnet 5.5:
+3. **A different grader.** Change the `grader` variable at the top of the
+   justfile to change the judge for every recipe, or override it for one
+   run. For example, grade with Claude Opus 5.5 (`ANTHROPIC_API_KEY`):
 
    ```sh
-   npx promptfoo@latest eval -c promptfooconfig.yaml \
-     --filter-providers local-model --grader anthropic:messages:claude-sonnet-5-5
+   just grader=anthropic:messages:claude-opus-5-5 eval-matrix
    ```
 
 Claude Sonnet 5.5 runs at high effort by default. For short classification
