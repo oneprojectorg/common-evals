@@ -23,7 +23,7 @@ pandoc for the deck. On a Mac with [Homebrew](https://brew.sh/), the
 [`Brewfile`](Brewfile) installs all of them and one recipe does the rest:
 
 ```sh
-brew install just  # once, so the recipe below can run
+brew bundle install
 just install       # brew bundle install, then npm install
 just validate      # check the configuration without model calls
 ```
