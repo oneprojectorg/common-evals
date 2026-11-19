@@ -59,7 +59,12 @@ eval-kimi:
 # Run and grade GLM-5.3 on Hugging Face's router. Set HF_TOKEN; no other key needed.
 # GLM judges its own answers here, so compare its rubric scores with care.
 eval-hf-glm:
-    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3" --grader "huggingface:chat:zai-org/GLM-5.3"
+    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3$" --grader "huggingface:chat:zai-org/GLM-5.3"
+
+# Run GLM-5.3 Flash on Hugging Face's router only. Set HF_TOKEN; no other key
+# needed, because its larger sibling GLM-5.3 grades on the router too.
+eval-hf-glm-flash:
+    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3-Flash" --grader "huggingface:chat:zai-org/GLM-5.3"
 
 # Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
 eval-hf-qwen:
@@ -174,7 +179,8 @@ eval-generated *models="hf-glm-5.3": build-cases
     filters=()
     for model in {{models}}; do
         case "$model" in
-            hf-glm-5.3|hf-glm) filters+=("huggingface:.*GLM-5.3"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
+            hf-glm-5.3|hf-glm) filters+=("huggingface:.*GLM-5.3$"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
+            hf-glm-5.3-flash|hf-glm-flash) filters+=("huggingface:.*GLM-5.3-Flash"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
             sonnet) filters+=("claude-sonnet-5-5"); model_grader="{{grader}}" ;;
             opus) filters+=("claude-opus-5-5"); model_grader="{{grader}}" ;;
             gemini) filters+=("gemini-3.6-flash"); model_grader="{{grader}}" ;;
