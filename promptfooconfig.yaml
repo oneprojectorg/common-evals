@@ -53,6 +53,9 @@ providers:
   - id: huggingface:chat:zai-org/GLM-5.3
     label: Hugging Face GLM-5.3
     config: { inputCost: 9.0e-7, outputCost: 4.0e-6 }
+  - id: huggingface:chat:zai-org/GLM-5.3-Flash
+    label: Hugging Face GLM-5.3 Flash
+    config: { inputCost: 1.2e-7, outputCost: 3.8e-7 }
   # The Qwens are router-only: Together's current Qwens are dedicated-endpoint
   #-only or streaming-only (unusable from Promptfoo), checked 2026-11.
   - id: huggingface:chat:Qwen/Qwen3.8-2.4T-A95B

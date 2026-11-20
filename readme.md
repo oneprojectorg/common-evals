@@ -23,7 +23,7 @@ pandoc for the deck. On a Mac with [Homebrew](https://brew.sh/), the
 [`Brewfile`](Brewfile) installs all of them and one recipe does the rest:
 
 ```sh
-brew install just  # once, so the recipe below can run
+brew bundle install
 just install       # brew bundle install, then npm install
 just validate      # check the configuration without model calls
 ```
@@ -168,9 +168,11 @@ of that convenience is self-grading: its rubric scores reflect GLM's agreement
 with its own answers and are not comparable with the other recipes' scores.
 Use the matrix for comparable rows.
 
-The exceptions to the fixed grader are the two local recipes (`eval-local`,
-`eval-generated`), where llama-server grades its own answers so no paid API is
-needed; treat those rubric scores as a smoke test. The exact-match checks on
+The other exceptions to the fixed grader are `eval-generated`, whose default
+model (`hf-glm-5.3`) self-grades exactly like `eval-hf-glm`, and the local runs
+(`eval-local` and `just eval-generated local`), where llama-server grades its
+own answers so no paid API is needed; treat the local rubric scores as a smoke
+test. The exact-match checks on
 classification labels and merge decisions never depend on the grader.
 
 ## Compare models
@@ -303,7 +305,9 @@ just catalog                       # list datasets, access status, file counts
 just download cambridge-pb         # fetch one or more ids into data/raw/<id>/
 just download-all                  # every public dataset, about 600 MB
 just build-cases                   # write tests/generated/*.yaml from the data
-just eval-generated                # run the generated cases on llama-server
+just eval-generated                # run the generated cases on HF GLM-5.3 (HF_TOKEN)
+just eval-generated local          # the same cases on llama-server, self-graded
+just eval-generated sonnet deepseek kimi   # several models in one run, fixed grader
 just config=promptfooconfig.generated.yaml eval-matrix   # on the hosted models
 ```
 

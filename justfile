@@ -59,7 +59,12 @@ eval-kimi:
 # Run and grade GLM-5.3 on Hugging Face's router. Set HF_TOKEN; no other key needed.
 # GLM judges its own answers here, so compare its rubric scores with care.
 eval-hf-glm:
-    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3" --grader "huggingface:chat:zai-org/GLM-5.3"
+    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3$" --grader "huggingface:chat:zai-org/GLM-5.3"
+
+# Run GLM-5.3 Flash on Hugging Face's router only. Set HF_TOKEN; no other key
+# needed, because its larger sibling GLM-5.3 grades on the router too.
+eval-hf-glm-flash:
+    npx --yes promptfoo@latest eval -c {{config}} --filter-providers "huggingface:.*GLM-5.3-Flash" --grader "huggingface:chat:zai-org/GLM-5.3"
 
 # Run Qwen3.8 2.4T on Hugging Face's router only. Set HF_TOKEN and TOGETHER_API_KEY (grader).
 eval-hf-qwen:
@@ -158,9 +163,45 @@ download-all:
 build-cases *args:
     node scripts/build-cases.ts {{args}}
 
-# Run the generated cases with llama-server, like eval-local. Run `just build-cases` and start the server first.
-eval-generated:
-    npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "local-model" --grader "openai:chat:local-model" -j 1 --no-cache
+# Run the generated cases against one or more models in one run, rebuilding the
+# cases first like eval-all. The default, hf-glm-5.3, is GLM-5.3 on Hugging
+# Face's router: it needs only HF_TOKEN and, when it runs alone, grades its own
+# answers like eval-hf-glm, so compare its rubric scores with care. The other
+# names match the eval-* recipes above; `local` needs llama-server on port 8080
+# (`just serve-apertus`). Any other value is passed to --filter-providers as is.
+# With more than one model the fixed grader scores every row, so the scores are
+# comparable, for example `just eval-generated hf-glm-5.3 sonnet deepseek`.
+eval-generated *models="hf-glm-5.3": build-cases
+    #!/usr/bin/env bash
+    set -euo pipefail
+    grader="{{grader}}"
+    extra=()
+    filters=()
+    for model in {{models}}; do
+        case "$model" in
+            hf-glm-5.3|hf-glm) filters+=("huggingface:.*GLM-5.3$"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
+            hf-glm-5.3-flash|hf-glm-flash) filters+=("huggingface:.*GLM-5.3-Flash"); model_grader="huggingface:chat:zai-org/GLM-5.3" ;;
+            sonnet) filters+=("claude-sonnet-5-5"); model_grader="{{grader}}" ;;
+            opus) filters+=("claude-opus-5-5"); model_grader="{{grader}}" ;;
+            gemini) filters+=("gemini-3.6-flash"); model_grader="{{grader}}" ;;
+            openai) filters+=("gpt-6-luna"); model_grader="{{grader}}" ;;
+            glm) filters+=("togetherai:zai-org/GLM-5.3$"); model_grader="{{grader}}" ;;
+            glm-flash) filters+=("togetherai:.*GLM-5.3-Flash"); model_grader="{{grader}}" ;;
+            deepseek) filters+=("DeepSeek-V4"); model_grader="{{grader}}" ;;
+            kimi) filters+=("Kimi-K3"); model_grader="{{grader}}" ;;
+            hf-qwen) filters+=("huggingface:.*Qwen3.8-2.4T"); model_grader="{{grader}}" ;;
+            hf-qwen-27b) filters+=("huggingface:.*Qwen3.8-27B"); model_grader="{{grader}}" ;;
+            hf-qwen36) filters+=("huggingface:.*Qwen3.6-35B"); model_grader="{{grader}}" ;;
+            hf-apertus) filters+=("huggingface:.*Apertus"); model_grader="{{grader}}" ;;
+            local|local-model) filters+=("local-model"); model_grader="openai:chat:local-model"; extra=(-j 1 --no-cache) ;;
+            *) filters+=("$model"); model_grader="{{grader}}" ;;
+        esac
+    done
+    if [ ${#filters[@]} -eq 1 ]; then
+        grader="$model_grader"
+    fi
+    filter=$(IFS='|'; echo "${filters[*]}")
+    npx --yes promptfoo@latest eval -c promptfooconfig.generated.yaml --filter-providers "$filter" --grader "$grader" ${extra[@]+"${extra[@]}"}
 
 # templates/slidy/ holds the W3C Slidy script, stylesheet, and icons, so the build needs no network and no pandoc
 # HTTP support; --embed-resources inlines them. The theme is copied from oneproject-knowledge-base/templates/.
